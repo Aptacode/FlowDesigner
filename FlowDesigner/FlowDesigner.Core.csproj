@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <AssemblyName>Aptacode.FlowDesigner</AssemblyName>
-    <RootNamespace>Aptacode.FlowDesigner</RootNamespace>
+    <AssemblyName>Aptacode.FlowDesigner.Core</AssemblyName>
+    <RootNamespace>Aptacode.FlowDesigner.Core</RootNamespace>
   </PropertyGroup>
 
 </Project>
