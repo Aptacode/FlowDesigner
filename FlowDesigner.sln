@@ -5,9 +5,9 @@ VisualStudioVersion = 16.0.30621.155
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowDesigner.Core", "FlowDesigner\FlowDesigner.Core.csproj", "{7609297D-495C-4927-B202-19D713E3C0BE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowDesigner.Blazor.Demo", "FlowDesigner.Blazor.Demo\FlowDesigner.Blazor.Demo.csproj", "{C83C9A4F-EAAF-4A2D-A0F4-C66B4EA25C57}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowDesigner.Blazor.Demo", "FlowDesigner.Blazor.Demo\FlowDesigner.Blazor.Demo.csproj", "{C83C9A4F-EAAF-4A2D-A0F4-C66B4EA25C57}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowDesigner.Blazor", "FlowDesigner.Blazor\FlowDesigner.Blazor.csproj", "{B61515EB-1C73-4870-AE2C-AA30BA3AB408}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowDesigner.Blazor", "FlowDesigner.Blazor\FlowDesigner.Blazor.csproj", "{B61515EB-1C73-4870-AE2C-AA30BA3AB408}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

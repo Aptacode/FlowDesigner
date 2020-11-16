@@ -6,4 +6,12 @@
     <RootNamespace>Aptacode.FlowDesigner.Core</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Models\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aptacode.CSharp.Common.Utilities" Version="1.0.0.30" />
+  </ItemGroup>
+
 </Project>
