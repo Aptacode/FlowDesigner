@@ -1,7 +1,11 @@
 ﻿using Aptacode.CSharp.Common.Utilities.Mvvm;
+using Aptacode.PathFinder;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels
 {
@@ -48,40 +52,53 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
     public class ConnectionViewModel : BindableBase
     {
-        public ConnectionViewModel(Guid id, string label, ItemViewModel item1, ItemViewModel item2)
+        public ConnectionViewModel(Guid id, string label, DesignerViewModel designer, ItemViewModel item1, ItemViewModel item2)
         {
             Id = id;
             Label = label;
-            Item1 = new ConnectedItem(item1, ConnectionMode.Out, 3);
+            Item1 = new ConnectedItem(item1, ConnectionMode.Out, 0);
             Item2 = new ConnectedItem(item2, ConnectionMode.In, item1.AnchorPointCount / 2);
-
-            Console.WriteLine(item2.AnchorPointCount);
+            Designer = designer;
 
             Item1.Item.PropertyChanged += Item_PropertyChanged;
             Item2.Item.PropertyChanged += Item_PropertyChanged;
-            Refresh();
         }
 
         private void Item_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e) 
         { 
             if(e.PropertyName == "X" || e.PropertyName == "Y")
             {
-                Refresh();
+                //Refresh();
             }
         }
 
         public void Refresh()
         {
-            var newPath = new List<(int X, int Y)>();
+            new TaskFactory().StartNew(() =>
+            {
+                var startPoint = Item1.GetConnectionPoint();
+                var endPoint = Item2.GetConnectionPoint();
 
-            var startPoint = Item1.GetConnectionPoint();
-            var endPoint = Item2.GetConnectionPoint();
+                var obstacles = new List<Obstacle>();
+                foreach (var item in Designer.Items.ToList())
+                {
+                   obstacles.Add(new Obstacle(item.Id, new Vector2(item.X, item.Y), new Vector2(item.Width, item.Height)));
+                }
 
-            newPath.Add(startPoint);
-            newPath.Add(endPoint);
+                var map = new Map(Designer.Width, Designer.Height, new Vector2(startPoint.X - 1, startPoint.Y - 1), new Vector2(endPoint.X + 1, endPoint.Y + 1), obstacles.ToArray());
+                var pathFinder = new PathFinder.PathFinder();
 
+                var path = new StringBuilder();
 
-            SetProperty(ref _path, newPath);
+                path.Append("M ");
+                foreach (var point in pathFinder.FindPath(map))
+                {
+                    path.Append(point.X * DesignerViewModel.ScaleFactor).Append(' ').Append(point.Y * DesignerViewModel.ScaleFactor);
+                    path.Append("L ");
+                }
+
+                SetProperty(ref _path, path.ToString());
+            });
         }
 
 
@@ -90,28 +107,13 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public ConnectedItem Item1 { get; set; }
         public ConnectedItem Item2 { get; set; }
+        public DesignerViewModel Designer { get; set; }
 
-        private List<(int X, int Y)> _path;
+        private string _path;
 
-        public IEnumerable<(int X, int Y)> Path
+        public string Path
         {
             get { return _path; }
-        }
-
-        public string GetPath()
-        {
-            var newPath = new List<(int X, int Y)>();
-            var startPoint = Item1.GetConnectionPoint();
-            var endPoint = Item2.GetConnectionPoint();
-
-            var path = new StringBuilder();
-
-            path.Append("M ");
-            path.Append($"{startPoint.X * DesignerViewModel.ScaleFactor} {startPoint.Y * DesignerViewModel.ScaleFactor}");
-            path.Append("L ");
-            path.Append($"{endPoint.X * DesignerViewModel.ScaleFactor} {endPoint.Y * DesignerViewModel.ScaleFactor}");
-
-            return path.ToString();
         }
 
         internal bool IsConnectedTo(ItemViewModel item) => Item1.Item == item || Item2.Item == item;

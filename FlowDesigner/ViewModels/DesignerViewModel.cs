@@ -81,7 +81,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         private DelegateCommand<(ItemViewModel item1, ItemViewModel item2)> _connect;
         public DelegateCommand<(ItemViewModel item1, ItemViewModel item2)> Connect => _connect ??= new DelegateCommand<(ItemViewModel item1, ItemViewModel item2)>((tuple) =>
         {
-            var newConnection = new ConnectionViewModel(Guid.NewGuid(),"New Connection",tuple.item1, tuple.item2);
+            var newConnection = new ConnectionViewModel(Guid.NewGuid(),"New Connection", this, tuple.item1, tuple.item2);
             _connections.Add(newConnection);
             base.OnPropertyChanged(nameof(Connections));
         });

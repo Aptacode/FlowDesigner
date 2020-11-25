@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Threading.Tasks;
 using Aptacode.FlowDesigner.Core.ViewModels;
+using Aptacode.PathFinder;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
@@ -16,6 +18,7 @@ namespace FlowDesigner.Blazor.Demo.Pages
 
             Designer = new DesignerViewModel();
             Designer.CreateItem.Execute("State 1");
+            Designer.CreateItem.Execute("State 3");
             Designer.CreateItem.Execute("State 2");
             var items = Designer.Items.ToList();
             var item1 = items.First();
@@ -34,11 +37,13 @@ namespace FlowDesigner.Blazor.Demo.Pages
             var point = ((int)(e.OffsetX / 10), (int)(e.OffsetY / 10));
             foreach(var item in Designer.Items)
             {
-                if (item.CollidesWith(point))
+                if (!item.CollidesWith(point))
                 {
-                    SelectedItem = item;
-                    Designer.BringToFront(SelectedItem);
+                    continue;
                 }
+
+                SelectedItem = item;
+                Designer.BringToFront(SelectedItem);
             }
 
             if(SelectedItem == null)
@@ -50,12 +55,13 @@ namespace FlowDesigner.Blazor.Demo.Pages
             var mouseY = ((int)((e.OffsetY) / 10)) * 10;
             mouseDx = mouseX - SelectedItem.X * 10;
             mouseDy = mouseY - SelectedItem.Y * 10;
-
         }
 
         public void MouseUp(MouseEventArgs args)
         {
             SelectedItem = null;
+            Designer.Connections.First().Refresh();
+
         }
 
         public void MouseOut(MouseEventArgs e)
