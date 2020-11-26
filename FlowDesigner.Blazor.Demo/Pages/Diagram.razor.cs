@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -16,6 +17,7 @@ namespace FlowDesigner.Blazor.Demo.Pages
 
             Designer = new DesignerViewModel();
             Designer.CreateItem.Execute(("State 1", new Vector2(10,10), new Vector2(10,10)));
+            Designer.CreateItem.Execute(("State 3", new Vector2(10,10), new Vector2(10,10)));
             Designer.CreateItem.Execute(("State 2", new Vector2(25,25), new Vector2(10,10)));
             var items = Designer.Items.ToList();
             var item1 = items.First();
@@ -40,11 +42,13 @@ namespace FlowDesigner.Blazor.Demo.Pages
 
             foreach (var item in Designer.Items)
             {
-                if (item.CollidesWith(mousePosition))
+                if (!item.CollidesWith(mousePosition))
                 {
-                    SelectedItem = item;
-                    break;
+                    continue;
                 }
+
+                SelectedItem = item;
+                break;
             }
 
             if (SelectedItem == null)
@@ -71,7 +75,6 @@ namespace FlowDesigner.Blazor.Demo.Pages
             Console.WriteLine($"Release {SelectedItem.Label}{SelectedItem.Position}");
 
             SelectedItem = null;
-            Designer.Connections.First().Refresh();
         }
 
         public void MouseOut(MouseEventArgs e)
@@ -84,6 +87,16 @@ namespace FlowDesigner.Blazor.Demo.Pages
             {
                 var mousePosition = new Vector2((int)(e.OffsetX / 10.0), (int)(e.OffsetY / 10.0));
                 SelectedItem.Position = mousePosition - mouseDelta;
+
+                var timer = new Stopwatch();
+                timer.Start();
+
+                Designer.Connections.First().Refresh();
+
+
+                timer.Stop();
+                Console.WriteLine($"Total Elapsed: {timer.ElapsedMilliseconds}ms");
+
             }
         }
     }

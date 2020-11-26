@@ -34,12 +34,10 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             }
 
             var map = new Map(Designer.Width, Designer.Height, startPoint - Vector2.One, endPoint + Vector2.One, obstacles.ToArray());
-            var pathFinder = new PathFinder.PathFinder();
-
             var path = new StringBuilder();
 
             path.Append("M ");
-            foreach (var point in pathFinder.FindPath(map))
+            foreach (var point in map.FindPath())
             {
                 path.Append(point.X * DesignerViewModel.ScaleFactor).Append(' ').Append(point.Y * DesignerViewModel.ScaleFactor);
                 path.Append("L ");

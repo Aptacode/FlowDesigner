@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Aptacode.CSharp.Common.Utilities" Version="1.0.0.30" />
-    <PackageReference Include="Aptacode.PathFinder" Version="1.0.4-CI-20201126-114417" />
+    <PackageReference Include="Aptacode.PathFinder" Version="1.0.4-CI-20201126-203238" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="5.0.0" />
   </ItemGroup>
 
