@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using Aptacode.FlowDesigner.Core.ViewModels;
-using Aptacode.PathFinder;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
@@ -17,9 +15,8 @@ namespace FlowDesigner.Blazor.Demo.Pages
         protected override async Task OnInitializedAsync() {
 
             Designer = new DesignerViewModel();
-            Designer.CreateItem.Execute("State 1");
-            Designer.CreateItem.Execute("State 3");
-            Designer.CreateItem.Execute("State 2");
+            Designer.CreateItem.Execute(("State 1", new Vector2(10,10), new Vector2(10,10)));
+            Designer.CreateItem.Execute(("State 2", new Vector2(25,25), new Vector2(10,10)));
             var items = Designer.Items.ToList();
             var item1 = items.First();
             var item2 = items.Last();
@@ -29,39 +26,52 @@ namespace FlowDesigner.Blazor.Demo.Pages
         }
 
         public ItemViewModel? SelectedItem { get; set; }
-        private int mouseDx { get; set; }
-        private int mouseDy { get; set; }
+
+        private Vector2 mouseDelta {get;set;}
 
         public void MouseDown(MouseEventArgs e)
         {
-            var point = ((int)(e.OffsetX / 10), (int)(e.OffsetY / 10));
-            foreach(var item in Designer.Items)
+            if (SelectedItem != null)
             {
-                if (!item.CollidesWith(point))
-                {
-                    continue;
-                }
-
-                SelectedItem = item;
-                Designer.BringToFront(SelectedItem);
+                return;
             }
 
+            var mousePosition = new Vector2((int)(e.OffsetX / 10.0f), (int)(e.OffsetY / 10.0f));
+
+            foreach (var item in Designer.Items)
+            {
+                if (item.CollidesWith(mousePosition))
+                {
+                    SelectedItem = item;
+                    break;
+                }
+            }
+
+            if (SelectedItem == null)
+            {
+                return;
+            }
+
+            Designer.BringToFront(SelectedItem);
+            mouseDelta = mousePosition - SelectedItem.Position;
+
+            Console.WriteLine($"Click {SelectedItem.Label}{SelectedItem.Position}");
+        }
+
+        public void MouseUp(MouseEventArgs e)
+        {
             if(SelectedItem == null)
             {
                 return;
             }
 
-            var mouseX = ((int)((e.OffsetX) / 10)) * 10;
-            var mouseY = ((int)((e.OffsetY) / 10)) * 10;
-            mouseDx = mouseX - SelectedItem.X * 10;
-            mouseDy = mouseY - SelectedItem.Y * 10;
-        }
+            var mousePosition = new Vector2((int)(e.OffsetX / 10.0), (int)(e.OffsetY / 10.0));
+            SelectedItem.Position = mousePosition - mouseDelta;
 
-        public void MouseUp(MouseEventArgs args)
-        {
+            Console.WriteLine($"Release {SelectedItem.Label}{SelectedItem.Position}");
+
             SelectedItem = null;
             Designer.Connections.First().Refresh();
-
         }
 
         public void MouseOut(MouseEventArgs e)
@@ -72,8 +82,8 @@ namespace FlowDesigner.Blazor.Demo.Pages
         {
             if(SelectedItem != null)
             {
-                SelectedItem.X = (((int)((e.OffsetX) / 10)) * 10 - mouseDx) / 10;
-                SelectedItem.Y = (((int)((e.OffsetY) / 10)) * 10 - mouseDy) / 10;
+                var mousePosition = new Vector2((int)(e.OffsetX / 10.0), (int)(e.OffsetY / 10.0));
+                SelectedItem.Position = mousePosition - mouseDelta;
             }
         }
     }

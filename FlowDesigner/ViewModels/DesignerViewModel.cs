@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels
 {
@@ -26,21 +27,21 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         #region Commands
 
-        private DelegateCommand<string> _createItem;
-        public DelegateCommand<string> CreateItem => _createItem ??= new DelegateCommand<string>((itemName) =>
+        private DelegateCommand<(string, Vector2, Vector2)> _createItem;
+        public DelegateCommand<(string, Vector2, Vector2)> CreateItem => _createItem ??= new DelegateCommand<(string,Vector2,Vector2)>((details) =>
         {
-            var newItem = new ItemViewModel(Guid.NewGuid(), itemName, 10,10,10,5);
+            var newItem = new ItemViewModel(Guid.NewGuid(), details.Item1, details.Item2, details.Item3);
             _items.Add(newItem);
             base.OnPropertyChanged(nameof(Connections));
         });
 
         public void BringToFront(ItemViewModel item)
         {
-            item.Z = Items.Select(i => i.Z).Max() + 1;
+            item.Z = Items.Max(i => i.Z) + 1;
         }
         public void SendToBack(ItemViewModel item)
         {
-            var min = Items.Select(i => i.Z).Min();
+            var min = Items.Min(i => i.Z);
             if(min <= 1)
             {
                 foreach(var i in Items)
@@ -61,20 +62,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             }
 
             _items.Remove(item);
-            base.OnPropertyChanged(nameof(Items));
-        });
-
-        private DelegateCommand<(ItemViewModel item, int x, int y)> _moveItem;
-        public DelegateCommand<(ItemViewModel item, int x, int y)> MoveItem => _moveItem ??= new DelegateCommand<(ItemViewModel item, int x, int y)>((tuple) =>
-        {
-            tuple.item.SetPosition(tuple.x, tuple.y);
-            base.OnPropertyChanged(nameof(Connections));
-        });
-
-        private DelegateCommand<(ItemViewModel item, int width, int height)> _resizeItem;
-        public DelegateCommand<(ItemViewModel item, int width, int height)> ResizeItem => _resizeItem ??= new DelegateCommand<(ItemViewModel item, int width, int height)>((tuple) =>
-        {
-            tuple.item.SetSize(tuple.width, tuple.height);
             base.OnPropertyChanged(nameof(Items));
         });
 

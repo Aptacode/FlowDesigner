@@ -1,31 +1,17 @@
 ﻿using Aptacode.CSharp.Common.Utilities.Mvvm;
 using System;
+using System.Numerics;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels
 {
     public class ItemViewModel : BindableBase
     {
-        public void SetPosition(int x, int y)
-        {
-            X = x;
-            Y = y;
-        }
-
-        public void SetSize(int width, int height)
-        {
-            Width = width;
-            Height = height;
-        }
-
-        public ItemViewModel(Guid id, string label, int x, int y, int width, int height)
+        public ItemViewModel(Guid id, string label, Vector2 position, Vector2 size)
         {
             Id = id;
             Label = label;
-
-            X = x;
-            Y = y;
-            Width = width;
-            Height = height;
+            Position = position;
+            Size = size;
             Z = 10;
         }
 
@@ -40,44 +26,28 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             set { SetProperty(ref _z, value); }
         }
 
-        private int _x;
+        private Vector2 _position;
 
-        public int X
+        public Vector2 Position
         {
-            get { return _x; }
-            set { SetProperty(ref _x, value); }
+            get { return _position; }
+            set { SetProperty(ref _position, value); }
         }
 
-        private int _y;
+        private Vector2 _size;
 
-        public int Y
+        public Vector2 Size
         {
-            get { return _y; }
-            set { SetProperty(ref _y, value); }
+            get { return _size; }
+            set { SetProperty(ref _size, value); }
         }
 
-        private int _width;
+        public int AnchorPointCount => (int)(2 * (Size.X + Size.Y));
 
-        public int Width
+        public bool CollidesWith(Vector2 position)
         {
-            get { return _width; }
-            set { SetProperty(ref _width, value); }
-        }
-
-        private int _height;
-
-        public int Height
-        {
-            get { return _height; }
-            set { SetProperty(ref _height, value); }
-        }
-
-        public int AnchorPointCount => (2 * Width) + (2 * Height);
-
-        public bool CollidesWith((int x, int y) point)
-        {
-            return point.x >= X && point.x <= X + Width &&
-               point.y >= Y && point.y <= Y + Height;
+            return position.X >= Position.X && position.X <= Position.X + Size.X &&
+               position.Y >= Position.Y && position.Y <= Position.Y + Size.Y;
         }
     }
 }

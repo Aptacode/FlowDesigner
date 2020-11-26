@@ -4,7 +4,7 @@
 
 <g id="@(Item.Id.ToString())">
 
-    <rect x="@((Item.X * 10) + 0.5)" y="@((Item.Y * 10) + 0.5)" width="@(Item.Width * 10 - 0.5)" height="@(Item.Height * 10 - 0.5)" fill="white" stroke="black" stroke-width="1" />
+    <rect x="@X" y="@Y" width="@Width" height="@Height" fill="white" stroke="black" stroke-width="1" />
     <text style="pointer-events: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;  user-select: none;"
-          x="@(Item.X * 10)" y="@(Item.Y *10 + 20)" fill="black">@Item.Label</text>
+          x="@(X + 20)" y="@(Y + 20)" fill="black">@Item.Label</text>
 </g>

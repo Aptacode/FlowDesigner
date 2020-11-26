@@ -20,7 +20,7 @@
 
     @foreach (var item in Designer.Items)
     {
-        <Item Item="item" />
+        <Item Item="item" @key="item.Id"/>
     }
 
     @foreach (var connection in Designer.Connections)
