@@ -1,16 +1,7 @@
-﻿using Aptacode.CSharp.Common.Utilities.Mvvm;
-using Aptacode.PathFinder;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels
 {
-
     public class ConnectedItem
     {
         public ConnectedItem(ItemViewModel item, ConnectionMode mode, int anchorPoint)
@@ -26,7 +17,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public Vector2 GetConnectionPoint()
         {
-            if(AnchorPoint <= Item.Size.X)
+            if (AnchorPoint <= Item.Size.X)
             {
                 return new Vector2(Item.Position.X + AnchorPoint, Item.Position.Y);
             }

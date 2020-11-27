@@ -13,23 +13,27 @@ namespace FlowDesigner.Blazor.Demo.Pages
     {
         public DesignerViewModel Designer { get; set; }
 
-        protected override async Task OnInitializedAsync() {
+        public ItemViewModel? SelectedItem { get; set; }
 
+        private Vector2 MouseDelta { get; set; }
+
+        protected override async Task OnInitializedAsync()
+        {
             Designer = new DesignerViewModel();
-            Designer.CreateItem.Execute(("State 1", new Vector2(10,10), new Vector2(10,10)));
-            Designer.CreateItem.Execute(("State 3", new Vector2(10,10), new Vector2(10,10)));
-            Designer.CreateItem.Execute(("State 2", new Vector2(25,25), new Vector2(10,10)));
+            Designer.CreateItem.Execute(("State 1", new Vector2(10, 10), new Vector2(10, 4)));
+            Designer.CreateItem.Execute(("State 2", new Vector2(10, 20), new Vector2(10, 4)));
+            Designer.CreateItem.Execute(("State 3", new Vector2(25, 30), new Vector2(10, 4)));
+            Designer.CreateItem.Execute(("State 4", new Vector2(10, 40), new Vector2(10, 4)));
+            Designer.CreateItem.Execute(("State 5", new Vector2(10, 50), new Vector2(10, 4)));
+            Designer.CreateItem.Execute(("State 6", new Vector2(25, 60), new Vector2(10, 4)));
             var items = Designer.Items.ToList();
-            var item1 = items.First();
-            var item2 = items.Last();
-            Designer.Connect.Execute((item1, item2));
+            Designer.Connect.Execute((items[0], items[1]));
+            Designer.Connect.Execute((items[0], items[2]));
+            Designer.Connect.Execute((items[0], items[3]));
+            Designer.Connect.Execute((items[0], items[4]));
 
             await base.OnInitializedAsync();
         }
-
-        public ItemViewModel? SelectedItem { get; set; }
-
-        private Vector2 mouseDelta {get;set;}
 
         public void MouseDown(MouseEventArgs e)
         {
@@ -38,7 +42,7 @@ namespace FlowDesigner.Blazor.Demo.Pages
                 return;
             }
 
-            var mousePosition = new Vector2((int)(e.OffsetX / 10.0f), (int)(e.OffsetY / 10.0f));
+            var mousePosition = new Vector2((int) (e.OffsetX / 10.0f), (int) (e.OffsetY / 10.0f));
 
             foreach (var item in Designer.Items)
             {
@@ -57,47 +61,71 @@ namespace FlowDesigner.Blazor.Demo.Pages
             }
 
             Designer.BringToFront(SelectedItem);
-            mouseDelta = mousePosition - SelectedItem.Position;
+            MouseDelta = mousePosition - SelectedItem.Position;
 
             Console.WriteLine($"Click {SelectedItem.Label}{SelectedItem.Position}");
         }
 
         public void MouseUp(MouseEventArgs e)
         {
-            if(SelectedItem == null)
+            if (SelectedItem == null)
             {
                 return;
             }
 
-            var mousePosition = new Vector2((int)(e.OffsetX / 10.0), (int)(e.OffsetY / 10.0));
-            SelectedItem.Position = mousePosition - mouseDelta;
+            var mousePosition = new Vector2((int) (e.OffsetX / 10.0), (int) (e.OffsetY / 10.0));
+            SelectedItem.Position = mousePosition - MouseDelta;
+
 
             Console.WriteLine($"Release {SelectedItem.Label}{SelectedItem.Position}");
+
+            var timer = new Stopwatch();
+            timer.Start();
+
+            foreach (var connection in Designer.Connections.Where(c => c.Item1.Item == SelectedItem || c.Item2.Item == SelectedItem))
+            {
+                connection.Refresh();
+            }
+
+            timer.Stop();
+            Console.WriteLine($"Total Elapsed: {timer.ElapsedMilliseconds}ms");
 
             SelectedItem = null;
         }
 
-        public void MouseOut(MouseEventArgs e)
-        {
-        }
+        public void MouseOut(MouseEventArgs e) { }
 
+        Vector2 lastDrawPoint = Vector2.Zero;
         public void MouseMove(MouseEventArgs e)
         {
-            if(SelectedItem != null)
+            if (SelectedItem == null)
             {
-                var mousePosition = new Vector2((int)(e.OffsetX / 10.0), (int)(e.OffsetY / 10.0));
-                SelectedItem.Position = mousePosition - mouseDelta;
-
-                var timer = new Stopwatch();
-                timer.Start();
-
-                Designer.Connections.First().Refresh();
-
-
-                timer.Stop();
-                Console.WriteLine($"Total Elapsed: {timer.ElapsedMilliseconds}ms");
-
+                return;
             }
+
+            var mouseX = (int) (e.OffsetX / 10.0);
+            var mouseY = (int)(e.OffsetY / 10.0);
+            var newPosition = new Vector2(mouseX, mouseY) - MouseDelta;
+
+            SelectedItem.Position = newPosition;
+
+            if (!((newPosition - lastDrawPoint).Length() > 5.0f))
+            {
+                return;
+            }
+
+            lastDrawPoint = newPosition;
+            var timer = new Stopwatch();
+            timer.Start();
+
+            foreach (var connection in Designer.Connections.Where(c => c.Item1.Item == SelectedItem || c.Item2.Item == SelectedItem))
+            {
+                connection.Refresh();
+            }
+
+            timer.Stop();
+            Console.WriteLine($"Total Elapsed: {timer.ElapsedMilliseconds}ms");
+
         }
     }
 }

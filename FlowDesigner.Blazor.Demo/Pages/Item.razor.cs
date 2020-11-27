@@ -1,42 +1,40 @@
-﻿using Aptacode.FlowDesigner.Core.ViewModels;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
-using System;
+﻿using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
+using Aptacode.FlowDesigner.Core.ViewModels;
+using Microsoft.AspNetCore.Components;
 
 namespace FlowDesigner.Blazor.Demo.Pages
 {
     public class ItemBase : ComponentBase, IDisposable
     {
-        [Parameter]
-        public ItemViewModel Item { get; set; }
+        [Parameter] public ItemViewModel Item { get; set; }
 
         public float X { get; set; }
         public float Y { get; set; }
         public float Width { get; set; }
         public float Height { get; set; }
 
-        protected override async Task OnInitializedAsync() {
+        public void Dispose()
+        {
+            Item.PropertyChanged -= Item_PropertyChanged;
+        }
 
+        protected override async Task OnInitializedAsync()
+        {
             Item.PropertyChanged += Item_PropertyChanged;
             Refresh();
 
             await base.OnInitializedAsync();
         }
 
-        private void Item_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void Item_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "Position" || e.PropertyName == "Size")
             {
                 Refresh();
                 InvokeAsync(StateHasChanged);
             }
-
-        }
-
-        public void Dispose()
-        {
-            Item.PropertyChanged -= Item_PropertyChanged;
         }
 
         public void Refresh()

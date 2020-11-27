@@ -1,10 +1,10 @@
-﻿
-@inherits ItemBase
+﻿@inherits ItemBase
 
 
 <g id="@(Item.Id.ToString())">
 
-    <rect x="@X" y="@Y" width="@Width" height="@Height" fill="white" stroke="black" stroke-width="1" />
-    <text style="pointer-events: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;  user-select: none;"
-          x="@(X + 20)" y="@(Y + 20)" fill="black">@Item.Label</text>
+    <rect x="@X" y="@Y" width="@Width" height="@Height" fill="white" stroke="black" stroke-width="1"/>
+    <text style="-moz-user-select: none; -ms-user-select: none; -webkit-user-select: none; pointer-events: none; user-select: none;"
+          x="@(X + 20)" y="@(Y + 20)" fill="black">
+        @Item.Label</text>
 </g>

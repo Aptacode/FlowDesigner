@@ -2,6 +2,8 @@
 {
     public enum ConnectionMode
     {
-        In, Out, Both
+        In,
+        Out,
+        Both
     }
 }
