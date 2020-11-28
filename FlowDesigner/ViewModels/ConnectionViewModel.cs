@@ -17,8 +17,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         {
             Id = id;
             Label = label;
-            Item1 = new ConnectedItem(item1, ConnectionMode.Out, 18);
-            Item2 = new ConnectedItem(item2, ConnectionMode.In, item1.AnchorPointCount / 2);
+            Item1 = new ConnectedItem(item1, ConnectionMode.Out, item1.AnchorPointCount / 2);
+            Item2 = new ConnectedItem(item2, ConnectionMode.In, item2.AnchorPointCount / 2);
             Designer = designer;
 
             Item1.PropertyChanged += Item1_PropertyChanged;
@@ -28,7 +28,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         private void Item1_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            //Refresh();
+            Refresh();
         }
 
         public Guid Id { get; set; }
@@ -51,7 +51,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 obstacles.Add(new Obstacle(item.Id, item.Position, item.Size));
             }
 
-            var map = new Map(Designer.Width, Designer.Height, startPoint - Vector2.One, endPoint + Vector2.One,
+            var map = new Map(Designer.Width, Designer.Height, startPoint + Vector2.One, endPoint + Vector2.One,
                 obstacles.ToArray());
 
             var path = new StringBuilder();
@@ -64,6 +64,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             {
                 path.Add(point);
             }
+
             path.Add(Item1.ConnectionPoint);
 
 
@@ -71,16 +72,5 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         }
 
         internal bool IsConnectedTo(ItemViewModel item) => Item1.Item == item || Item2.Item == item;
-    }
-
-    public static class StringBuilderExtensions
-    {
-        public static StringBuilder Add(this StringBuilder path, Vector2 point)
-        {
-            path.Append(point.X * DesignerViewModel.ScaleFactor).Append(' ')
-                .Append(point.Y * DesignerViewModel.ScaleFactor);
-            path.Append("L ");
-            return path;
-        }
     }
 }
