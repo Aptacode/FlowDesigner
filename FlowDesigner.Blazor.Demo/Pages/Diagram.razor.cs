@@ -17,6 +17,9 @@ namespace FlowDesigner.Blazor.Demo.Pages
 
         private Vector2 MouseDelta { get; set; }
 
+        Vector2 ConnectionMouseDelta;
+        ConnectedItem connectedItem;
+
         protected override async Task OnInitializedAsync()
         {
             Designer = new DesignerViewModel();
@@ -28,21 +31,58 @@ namespace FlowDesigner.Blazor.Demo.Pages
             Designer.CreateItem.Execute(("State 6", new Vector2(25, 60), new Vector2(10, 4)));
             var items = Designer.Items.ToList();
             Designer.Connect.Execute((items[0], items[1]));
-            Designer.Connect.Execute((items[0], items[2]));
-            Designer.Connect.Execute((items[0], items[3]));
-            Designer.Connect.Execute((items[0], items[4]));
+            //Designer.Connect.Execute((items[0], items[2]));
+            //Designer.Connect.Execute((items[0], items[3]));
+            //Designer.Connect.Execute((items[0], items[4]));
 
             await base.OnInitializedAsync();
         }
 
         public void MouseDown(MouseEventArgs e)
         {
-            if (SelectedItem != null)
+            if (SelectedItem == null)
             {
-                return;
+                ClickItem(e);
             }
 
-            var mousePosition = new Vector2((int) (e.OffsetX / 10.0f), (int) (e.OffsetY / 10.0f));
+            if (connectedItem == null)
+            {
+                ClickConnection(e);
+            }
+        }
+
+        public void MouseUp(MouseEventArgs e)
+        {
+            if (SelectedItem != null)
+            {
+                ReleaseItem(e);
+            }
+            if (connectedItem != null)
+            {
+                ReleaseConnection(e);
+            }
+
+        }
+
+        public void MouseOut(MouseEventArgs e) { }
+
+        Vector2 _lastDrawPoint = Vector2.Zero;
+        public void MouseMove(MouseEventArgs e)
+        {
+            if (SelectedItem != null)
+            {
+                MoveItem(e);
+            }
+            if (connectedItem != null)
+            {
+                MoveConnection(e);
+   
+            }
+        }
+        private void ClickItem(MouseEventArgs e)
+        {
+
+            var mousePosition = new Vector2((int)(e.OffsetX / 10.0f), (int)(e.OffsetY / 10.0f));
 
             foreach (var item in Designer.Items)
             {
@@ -66,16 +106,36 @@ namespace FlowDesigner.Blazor.Demo.Pages
             Console.WriteLine($"Click {SelectedItem.Label}{SelectedItem.Position}");
         }
 
-        public void MouseUp(MouseEventArgs e)
+        private void MoveItem(MouseEventArgs e)
         {
-            if (SelectedItem == null)
+            var mouseX = (int) (e.OffsetX / 10.0);
+            var mouseY = (int)(e.OffsetY / 10.0);
+            var newPosition = new Vector2(mouseX, mouseY) - MouseDelta;
+
+            SelectedItem.Position = newPosition;
+
+            if (!((newPosition - _lastDrawPoint).Length() > 2.0f))
             {
                 return;
             }
 
-            var mousePosition = new Vector2((int) (e.OffsetX / 10.0), (int) (e.OffsetY / 10.0));
-            SelectedItem.Position = mousePosition - MouseDelta;
+            _lastDrawPoint = newPosition;
+            var timer = new Stopwatch();
+            timer.Start();
 
+            foreach (var connection in Designer.Connections.Where(c => c.Item1.Item == SelectedItem || c.Item2.Item == SelectedItem))
+            {
+                connection.Refresh();
+            }
+
+            timer.Stop();
+            Console.WriteLine($"Total Elapsed: {timer.ElapsedMilliseconds}ms");
+        }
+
+        private void ReleaseItem(MouseEventArgs e)
+        {
+            var mousePosition = new Vector2((int)(e.OffsetX / 10.0), (int)(e.OffsetY / 10.0));
+            SelectedItem.Position = mousePosition - MouseDelta;
 
             Console.WriteLine($"Release {SelectedItem.Label}{SelectedItem.Position}");
 
@@ -93,38 +153,47 @@ namespace FlowDesigner.Blazor.Demo.Pages
             SelectedItem = null;
         }
 
-        public void MouseOut(MouseEventArgs e) { }
-
-        Vector2 lastDrawPoint = Vector2.Zero;
-        public void MouseMove(MouseEventArgs e)
+        private void ClickConnection(MouseEventArgs e)
         {
-            if (SelectedItem == null)
+            var mousePosition = new Vector2((int)(e.OffsetX / 10.0f), (int)(e.OffsetY / 10.0f));
+
+            foreach (var connection in Designer.Connections)
+            {
+                if (connection.Item1.CollidesWith(mousePosition))
+                {
+                    connectedItem = connection.Item1;
+                    break;
+                }
+                if (connection.Item2.CollidesWith(mousePosition))
+                {
+                    connectedItem = connection.Item2;
+                    break;
+                }
+
+                break;
+            }
+            if(connectedItem != null)
+            {
+                ConnectionMouseDelta = mousePosition - connectedItem.ConnectionPoint;
+            }
+        }
+
+        private void MoveConnection(MouseEventArgs e)
+        {
+            if (connectedItem == null)
             {
                 return;
             }
 
-            var mouseX = (int) (e.OffsetX / 10.0);
-            var mouseY = (int)(e.OffsetY / 10.0);
-            var newPosition = new Vector2(mouseX, mouseY) - MouseDelta;
+            var mousePosition = new Vector2((int)(e.OffsetX / 10.0), (int)(e.OffsetY / 10.0));
+            var newAnchorPosition = mousePosition - ConnectionMouseDelta;
+            connectedItem.AnchorPoint = connectedItem.ToAnchorPoint(newAnchorPosition);
+            Console.WriteLine(connectedItem.AnchorPoint);
+        }
 
-            SelectedItem.Position = newPosition;
-
-            if (!((newPosition - lastDrawPoint).Length() > 5.0f))
-            {
-                return;
-            }
-
-            lastDrawPoint = newPosition;
-            var timer = new Stopwatch();
-            timer.Start();
-
-            foreach (var connection in Designer.Connections.Where(c => c.Item1.Item == SelectedItem || c.Item2.Item == SelectedItem))
-            {
-                connection.Refresh();
-            }
-
-            timer.Stop();
-            Console.WriteLine($"Total Elapsed: {timer.ElapsedMilliseconds}ms");
+        private void ReleaseConnection(MouseEventArgs e)
+        {
+            connectedItem = null;
 
         }
     }

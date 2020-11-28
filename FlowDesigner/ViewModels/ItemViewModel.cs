@@ -11,6 +11,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         private Vector2 _size;
 
         private int _z;
+        private int _anchorPointCount;
 
         public ItemViewModel(Guid id, string label, Vector2 position, Vector2 size)
         {
@@ -39,10 +40,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public Vector2 Size
         {
             get => _size;
-            set => SetProperty(ref _size, value);
+            set {
+                SetProperty(ref _size, value);
+            }
         }
 
-        public int AnchorPointCount => (int) (2 * (Size.X + Size.Y));
+        public int AnchorPointCount => (int)(2 * (_size.X + _size.Y));
 
         public bool CollidesWith(Vector2 position) =>
             position.X >= Position.X && position.X <= Position.X + Size.X &&

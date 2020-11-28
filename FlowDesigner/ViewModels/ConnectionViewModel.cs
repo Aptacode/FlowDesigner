@@ -17,11 +17,19 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         {
             Id = id;
             Label = label;
-            Item1 = new ConnectedItem(item1, ConnectionMode.Out, 0);
+            Item1 = new ConnectedItem(item1, ConnectionMode.Out, 18);
             Item2 = new ConnectedItem(item2, ConnectionMode.In, item1.AnchorPointCount / 2);
             Designer = designer;
+
+            Item1.PropertyChanged += Item1_PropertyChanged;
+            Item2.PropertyChanged += Item1_PropertyChanged;
+
         }
 
+        private void Item1_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            //Refresh();
+        }
 
         public Guid Id { get; set; }
         public string Label { get; set; }
@@ -45,19 +53,34 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
             var map = new Map(Designer.Width, Designer.Height, startPoint - Vector2.One, endPoint + Vector2.One,
                 obstacles.ToArray());
+
             var path = new StringBuilder();
 
             path.Append("M ");
+
+            path.Add(Item2.ConnectionPoint);
+
             foreach (var point in map.FindPath())
             {
-                path.Append(point.X * DesignerViewModel.ScaleFactor).Append(' ')
-                    .Append(point.Y * DesignerViewModel.ScaleFactor);
-                path.Append("L ");
+                path.Add(point);
             }
+            path.Add(Item1.ConnectionPoint);
+
 
             SetProperty(ref _path, path.ToString());
         }
 
         internal bool IsConnectedTo(ItemViewModel item) => Item1.Item == item || Item2.Item == item;
+    }
+
+    public static class StringBuilderExtensions
+    {
+        public static StringBuilder Add(this StringBuilder path, Vector2 point)
+        {
+            path.Append(point.X * DesignerViewModel.ScaleFactor).Append(' ')
+                .Append(point.Y * DesignerViewModel.ScaleFactor);
+            path.Append("L ");
+            return path;
+        }
     }
 }

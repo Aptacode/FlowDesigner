@@ -2,5 +2,8 @@
 
 
 <g id="@(Connection.Id.ToString())">
-    <path d="@Connection.Path" stroke="black" fill="transparent"/>
+
+    <circle cx="@(Connection.Item1.ConnectionPoint.X * 10)" cy="@(Connection.Item1.ConnectionPoint.Y * 10)" r="15" stroke="black" stroke-width="2" fill="red" />
+    <path d="@Connection.Path" stroke="black" fill="transparent" />
+    <circle cx="@(Connection.Item2.ConnectionPoint.X * 10)" cy="@(Connection.Item2.ConnectionPoint.Y * 10)" r="5" stroke="black" stroke-width="2" fill="red" />
 </g>

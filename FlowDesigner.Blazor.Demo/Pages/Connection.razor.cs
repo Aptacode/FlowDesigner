@@ -1,8 +1,10 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Numerics;
 using System.Threading.Tasks;
 using Aptacode.FlowDesigner.Core.ViewModels;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace FlowDesigner.Blazor.Demo.Pages
 {
@@ -18,6 +20,8 @@ namespace FlowDesigner.Blazor.Demo.Pages
         protected override async Task OnInitializedAsync()
         {
             Connection.PropertyChanged += Item_PropertyChanged;
+            Connection.Item1.Item.PropertyChanged += Item_PropertyChanged;
+            Connection.Item2.Item.PropertyChanged += Item_PropertyChanged;
 
             await base.OnInitializedAsync();
         }
