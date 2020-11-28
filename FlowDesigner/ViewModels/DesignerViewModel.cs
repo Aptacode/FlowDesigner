@@ -85,6 +85,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         #endregion
 
         #region Mouse
+
         public ItemViewModel? SelectedItem { get; set; }
         public ConnectedItem? SelectedConnection { get; set; }
 
@@ -102,33 +103,36 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             {
                 ClickConnection(position);
             }
-
         }
+
         public void MouseMove(Vector2 position)
         {
             if (SelectedItem != null)
             {
                 MoveItem(position);
             }
+
             if (SelectedConnection != null)
             {
                 MoveConnection(position);
-
             }
         }
+
         public void MouseUp(Vector2 position)
         {
             if (SelectedItem != null)
             {
                 ReleaseItem(position);
             }
+
             if (SelectedConnection != null)
             {
                 ReleaseConnection(position);
             }
         }
 
-        Vector2 _lastDrawPoint = Vector2.Zero;
+        private Vector2 _lastDrawPoint = Vector2.Zero;
+
         private void ClickItem(Vector2 position)
         {
             foreach (var item in Items)
@@ -149,8 +153,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
             BringToFront(SelectedItem);
             MouseDelta = position - SelectedItem.Position;
-
-            Console.WriteLine($"Click {SelectedItem.Label}{SelectedItem.Position}");
         }
 
         private void MoveItem(Vector2 position)
@@ -168,31 +170,29 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             var timer = new Stopwatch();
             timer.Start();
 
-            foreach (var connection in Connections.Where(c => c.Item1.Item == SelectedItem || c.Item2.Item == SelectedItem))
+            foreach (var connection in Connections.Where(c =>
+                c.Item1.Item == SelectedItem || c.Item2.Item == SelectedItem))
             {
                 connection.Refresh();
             }
 
             timer.Stop();
-            Console.WriteLine($"Total Elapsed: {timer.ElapsedMilliseconds}ms");
         }
 
         private void ReleaseItem(Vector2 position)
         {
             SelectedItem.Position = position - MouseDelta;
 
-            Console.WriteLine($"Release {SelectedItem.Label}{SelectedItem.Position}");
-
             var timer = new Stopwatch();
             timer.Start();
 
-            foreach (var connection in Connections.Where(c => c.Item1.Item == SelectedItem || c.Item2.Item == SelectedItem))
+            foreach (var connection in Connections.Where(c =>
+                c.Item1.Item == SelectedItem || c.Item2.Item == SelectedItem))
             {
                 connection.Refresh();
             }
 
             timer.Stop();
-            Console.WriteLine($"Total Elapsed: {timer.ElapsedMilliseconds}ms");
 
             SelectedItem = null;
         }
@@ -206,18 +206,17 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     SelectedConnection = connection.Item1;
                     break;
                 }
+
                 if (connection.Item2.CollidesWith(position))
                 {
                     SelectedConnection = connection.Item2;
                     break;
                 }
-
-                break;
             }
 
             if (SelectedConnection != null)
             {
-                ConnectionMouseDelta = position - SelectedConnection.ConnectionPoint;
+                ConnectionMouseDelta = position - SelectedConnection.AnchorPoint;
             }
         }
 
@@ -228,9 +227,10 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 return;
             }
 
-            var newAnchorPosition = position - ConnectionMouseDelta;
-            SelectedConnection.AnchorPoint = SelectedConnection.ToAnchorPoint(newAnchorPosition);
-            Console.WriteLine(SelectedConnection.AnchorPoint);
+            if (!SelectedConnection.Item.CollidesWith(position))
+            {
+                SelectedConnection.UpdateAnchorPointDelta(position);
+            }
         }
 
         private void ReleaseConnection(Vector2 position)

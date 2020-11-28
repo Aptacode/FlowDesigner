@@ -22,9 +22,9 @@ namespace FlowDesigner.Blazor.Demo.Pages
             Designer.CreateItem.Execute(("State 6", new Vector2(25, 60), new Vector2(10, 4)));
             var items = Designer.Items.ToList();
             Designer.Connect.Execute((items[0], items[1]));
-            //Designer.Connect.Execute((items[0], items[2]));
-            //Designer.Connect.Execute((items[0], items[3]));
-            //Designer.Connect.Execute((items[0], items[4]));
+            Designer.Connect.Execute((items[0], items[2]));
+            Designer.Connect.Execute((items[0], items[3]));
+            Designer.Connect.Execute((items[0], items[4]));
 
             await base.OnInitializedAsync();
         }

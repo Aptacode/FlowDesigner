@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
-using System.Numerics;
 using System.Text;
 using Aptacode.CSharp.Common.Utilities.Mvvm;
+using Aptacode.FlowDesigner.Core.Extensions;
 using Aptacode.PathFinder;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels
@@ -23,12 +24,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
             Item1.PropertyChanged += Item1_PropertyChanged;
             Item2.PropertyChanged += Item1_PropertyChanged;
-
-        }
-
-        private void Item1_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            Refresh();
         }
 
         public Guid Id { get; set; }
@@ -40,32 +35,37 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public string Path => _path;
 
+        private void Item1_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(ConnectedItem.AnchorPoint))
+            {
+                Refresh();
+            }
+        }
+
         public void Refresh()
         {
-            var startPoint = Item1.GetConnectionPoint();
-            var endPoint = Item2.GetConnectionPoint();
-
             var obstacles = new List<Obstacle>();
             foreach (var item in Designer.Items.ToList())
             {
                 obstacles.Add(new Obstacle(item.Id, item.Position, item.Size));
             }
 
-            var map = new Map(Designer.Width, Designer.Height, startPoint + Vector2.One, endPoint + Vector2.One,
+            var map = new Map(Designer.Width, Designer.Height, Item1.GetOffset(), Item2.GetOffset(),
                 obstacles.ToArray());
 
             var path = new StringBuilder();
 
             path.Append("M ");
 
-            path.Add(Item2.ConnectionPoint);
+            path.Add(Item2.AnchorPoint);
 
             foreach (var point in map.FindPath())
             {
                 path.Add(point);
             }
 
-            path.Add(Item1.ConnectionPoint);
+            path.Add(Item1.AnchorPoint);
 
 
             SetProperty(ref _path, path.ToString());

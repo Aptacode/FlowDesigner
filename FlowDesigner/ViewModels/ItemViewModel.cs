@@ -6,12 +6,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 {
     public class ItemViewModel : BindableBase
     {
+        private int _anchorPointCount;
         private Vector2 _position;
 
         private Vector2 _size;
 
         private int _z;
-        private int _anchorPointCount;
 
         public ItemViewModel(Guid id, string label, Vector2 position, Vector2 size)
         {
@@ -40,12 +40,17 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public Vector2 Size
         {
             get => _size;
-            set {
-                SetProperty(ref _size, value);
-            }
+            set => SetProperty(ref _size, value);
         }
 
-        public int AnchorPointCount => (int)(2 * (_size.X + _size.Y));
+        public Vector2 MidPoint => Position + Size / 2;
+
+        public Vector2 TopLeft => Position;
+        public Vector2 TopRight => Position + Size * new Vector2(1, 0);
+        public Vector2 BottomRight => Position + Size;
+        public Vector2 BottomLeft => Position + Size * new Vector2(0, 1);
+
+        public int AnchorPointCount => (int) (2 * (_size.X + _size.Y));
 
         public bool CollidesWith(Vector2 position) =>
             position.X >= Position.X && position.X <= Position.X + Size.X &&
