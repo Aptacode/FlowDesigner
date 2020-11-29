@@ -15,7 +15,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 {
     public class ConnectionViewModel : BindableBase
     {
-        private readonly MapBuilder _mapBuilder = new MapBuilder();
         private string _path;
         private Color _borderColor = Color.Black;
 
@@ -54,10 +53,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public void Redraw()
         {
             try
-            {
+            {       
+                MapBuilder _mapBuilder = new MapBuilder();
+
                 foreach (var item in Designer.Items.ToList())
                 {
-                    _mapBuilder.AddObstacle(item.Position, item.Size);
+                    _mapBuilder.AddObstacle(item.Position - Vector2.One, item.Size + (Vector2.One * 2));
                 }
 
                 _mapBuilder.SetStart(Item1.GetOffset());
@@ -65,7 +66,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 _mapBuilder.SetDimensions(Designer.Width, Designer.Height);
                 var map = _mapBuilder.Build();
                 var pathFinder =
-                    new PathFinder.Algorithm.PathFinder(map, JumpPointSearchNeighbourFinder.All(1.0f, 1.9f));
+                    new PathFinder.Algorithm.PathFinder(map, DefaultNeighbourFinder.Straight(0.5f));
                 ConnectionPath = pathFinder.FindPath();
                 var path = new StringBuilder();
 
@@ -78,7 +79,9 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 path.Add(Item1.AnchorPoint);
                 SetProperty(ref _path, path.ToString());
             }
-            catch { }
+            catch(Exception ex) {
+                Console.WriteLine(ex.ToString());
+            }
         }
 
         public Color BorderColor

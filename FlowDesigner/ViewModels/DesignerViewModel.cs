@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
@@ -140,7 +139,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
                 SetProperty(ref _selectedConnection, value);
 
-                //Highlight Item
+                //Highlight Connection
                 if (prevSelectedItem != null)
                 {
                     prevSelectedItem.BorderColor = Color.Black;
@@ -158,7 +157,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         private ConnectedItem? _connectedItem { get; set; }
 
         private Vector2 MouseDelta { get; set; }
-        private Vector2 ConnectionMouseDelta { get; set; }
 
         private bool _movingItem;
         private bool _resizingItem;
@@ -246,7 +244,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             {
                 SelectedItem.Position = newPosition;
 
-                if ((newPosition - _lastDrawPoint).Length() <= 2.0f)
+                if ((newPosition - _lastDrawPoint).Length() <= 1.0f)
                 {
                     return;
                 }
@@ -257,10 +255,14 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     if(connection.Item1.Item == SelectedItem || connection.Item2.Item == SelectedItem)
                     {
                         connection.Redraw();
+                        continue;
+                    }
+                    if (connection.ConnectionPath.Any(p => SelectedItem.CollidesWith(p)))
+                    {
+                        connection.Redraw();
+                        continue;
                     }
                 }
-                
-
             }
             else if (_resizingItem)
             {
@@ -308,11 +310,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     SelectedConnection = connection;
                     break;
                 }
-            }
-
-            if (SelectedConnection != null)
-            {
-                ConnectionMouseDelta = position - _connectedItem.AnchorPoint;
             }
         }
 

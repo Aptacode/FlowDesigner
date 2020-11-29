@@ -24,8 +24,8 @@ namespace FlowDesigner.Blazor.Demo.Pages
             var items = Designer.Items.ToList();
             Designer.Connect.Execute((items[0], items[1]));
             Designer.Connect.Execute((items[0], items[2]));
-            Designer.Connect.Execute((items[1], items[3]));
-            Designer.Connect.Execute((items[1], items[4]));
+            Designer.Connect.Execute((items[0], items[3]));
+            Designer.Connect.Execute((items[0], items[4]));
 
             Designer.RedrawConnections();
 
