@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using Aptacode.CSharp.Common.Utilities.Mvvm;
@@ -34,6 +35,13 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 connection.Redraw();
             }
         }
+
+        #region Events
+
+        public event EventHandler<ItemViewModel> SelectedItemChanged;
+        public event EventHandler<ConnectionViewModel> SelectedConnectionChanged;
+
+        #endregion
 
         #region Commands
 
@@ -95,8 +103,59 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         #region Mouse
 
-        public ItemViewModel? SelectedItem { get; set; }
-        public ConnectedItem? SelectedConnection { get; set; }
+        private ItemViewModel? _selectedItem;
+
+        public ItemViewModel? SelectedItem
+        {
+            get { return _selectedItem; }
+            set {
+
+                var prevSelectedItem = _selectedItem;
+
+                SetProperty(ref _selectedItem, value);
+
+                //Highlight Item
+                if(prevSelectedItem != null)
+                {
+                    prevSelectedItem.BorderColor = Color.Black;
+                }
+                if (_selectedItem != null)
+                {
+                    _selectedItem.BorderColor = Color.Green;
+                }
+
+                SelectedItemChanged?.Invoke(this, _selectedItem);
+            }
+        }
+
+        private ConnectionViewModel? _selectedConnection;
+
+        public ConnectionViewModel? SelectedConnection
+        {
+            get { return _selectedConnection; }
+            set
+            {
+
+                var prevSelectedItem = _selectedConnection;
+
+                SetProperty(ref _selectedConnection, value);
+
+                //Highlight Item
+                if (prevSelectedItem != null)
+                {
+                    prevSelectedItem.BorderColor = Color.Black;
+                }
+                if (_selectedConnection != null)
+                {
+                    _selectedConnection.BorderColor = Color.Green;
+                }
+
+                SelectedConnectionChanged?.Invoke(this, _selectedConnection);
+            }
+        }
+
+
+        private ConnectedItem? _connectedItem { get; set; }
 
         private Vector2 MouseDelta { get; set; }
         private Vector2 ConnectionMouseDelta { get; set; }
@@ -238,22 +297,22 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             {
                 if (connection.Item1.CollidesWith(position))
                 {
-                    SelectedConnection = connection.Item1;
+                    _connectedItem = connection.Item1;
+                    SelectedConnection = connection;
                     break;
                 }
 
-                if (!connection.Item2.CollidesWith(position))
+                if (connection.Item2.CollidesWith(position))
                 {
-                    continue;
+                    _connectedItem = connection.Item2;
+                    SelectedConnection = connection;
+                    break;
                 }
-
-                SelectedConnection = connection.Item2;
-                break;
             }
 
             if (SelectedConnection != null)
             {
-                ConnectionMouseDelta = position - SelectedConnection.AnchorPoint;
+                ConnectionMouseDelta = position - _connectedItem.AnchorPoint;
             }
         }
 
@@ -264,15 +323,15 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 return;
             }
 
-            if (SelectedConnection.Item.CollidesWith(position))
+            if (_connectedItem.Item.CollidesWith(position))
             {
                 return;
             }
 
-            SelectedConnection.UpdateAnchorPointDelta(position);
+            _connectedItem.UpdateAnchorPointDelta(position);
 
             foreach (var connection in Connections.Where(c =>
-                c.Item1.Item == SelectedConnection.Item || c.Item2.Item == SelectedConnection.Item))
+                c.Item1.Item == _connectedItem.Item || c.Item2.Item == _connectedItem.Item))
             {
                 connection.Redraw();
             }

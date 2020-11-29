@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Numerics;
 using Aptacode.CSharp.Common.Utilities.Mvvm;
 
@@ -9,6 +10,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         private Vector2 _position;
 
         private Vector2 _size;
+        private Color _borderColor = Color.Black;
 
         private int _z;
 
@@ -40,6 +42,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         {
             get => _size;
             set => SetProperty(ref _size, value);
+        }
+
+        public Color BorderColor
+        {
+            get => _borderColor;
+            set => SetProperty(ref _borderColor, value);
         }
 
         public Vector2 MidPoint => Position + Size / 2;

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -16,6 +17,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
     {
         private readonly MapBuilder _mapBuilder = new MapBuilder();
         private string _path;
+        private Color _borderColor = Color.Black;
 
         public ConnectionViewModel(Guid id, string label, DesignerViewModel designer, ItemViewModel item1,
             ItemViewModel item2)
@@ -77,6 +79,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 SetProperty(ref _path, path.ToString());
             }
             catch { }
+        }
+
+        public Color BorderColor
+        {
+            get => _borderColor;
+            set => SetProperty(ref _borderColor, value);
         }
 
         internal bool IsConnectedTo(ItemViewModel item) => Item1.Item == item || Item2.Item == item;
