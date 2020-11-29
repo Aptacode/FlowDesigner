@@ -5,6 +5,11 @@ using Aptacode.CSharp.Common.Utilities.Mvvm;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels
 {
+    public static class Constants
+    {
+        public static readonly float Tolerance = 0.01f;
+    }
+
     public class ConnectedItem : BindableBase
     {
         private Vector2 _anchorPoint;
@@ -13,7 +18,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         private Vector2 _connectionPointSize;
 
-        public ConnectedItem(ItemViewModel item, ConnectionMode mode, int anchorPoint)
+        public ConnectedItem(ItemViewModel item, ConnectionMode mode)
         {
             Item = item;
             Item.PropertyChanged += Item_PropertyChanged;
@@ -43,67 +48,45 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             set => SetProperty(ref _anchorPointDelta, value);
         }
 
-        public float AnchorMagnitude { get; set; }
-        public float AnchorPhase { get; set; }
-
         private void Item_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(ItemViewModel.Position))
+            switch (e.PropertyName)
             {
-                AnchorPoint = Item.MidPoint - AnchorPointDelta;
-            }
-
-            if (e.PropertyName == nameof(ItemViewModel.Size))
-            {
-                //UpdateAnchorPointDelta(AnchorPoint);
+                case nameof(ItemViewModel.Position):
+                    AnchorPoint = Item.MidPoint - AnchorPointDelta;
+                    break;
+                case nameof(ItemViewModel.Size):
+                    UpdateAnchorPointDelta(AnchorPoint - AnchorPointDelta);
+                    break;
             }
         }
 
-        public float Determinant(Vector4 vector) => vector.X * vector.W - vector.Z * vector.Y;
-
-        public Vector4 Inverse(Vector4 vector) =>
-            new Vector4(vector.W, -vector.Y, -vector.Z, vector.X) * (1.0f / Determinant(vector));
-
-        public Vector2 Mul(Vector4 vector, Vector2 position) =>
-            new Vector2(vector.X * position.X + vector.Y * position.Y, vector.Z * position.X + vector.W * position.Y);
-
         public void UpdateAnchorPointDelta(Vector2 mousePosition)
         {
-            var tempAnchorPoint = AnchorPoint;
+            Vector2 tempAnchorPoint;
 
             var topIntersect = GetIntersection(Item.TopLeft, Item.TopRight, Item.MidPoint, mousePosition);
             if (topIntersect.X >= Item.TopLeft.X && topIntersect.X <= Item.TopRight.X)
             {
-                if (mousePosition.Y <= Item.MidPoint.Y)
-                {
-                    tempAnchorPoint = topIntersect;
-                }
-                else
-                {
-                    tempAnchorPoint = GetIntersection(Item.BottomLeft, Item.BottomRight, Item.MidPoint, mousePosition);
-                }
+                tempAnchorPoint = mousePosition.Y <= Item.MidPoint.Y
+                    ? topIntersect
+                    : GetIntersection(Item.BottomLeft, Item.BottomRight, Item.MidPoint, mousePosition);
             }
             else
             {
                 var leftIntersect = GetIntersection(Item.TopLeft, Item.BottomLeft, Item.MidPoint, mousePosition);
-                if (mousePosition.X <= Item.MidPoint.X)
-                {
-                    tempAnchorPoint = leftIntersect;
-                }
-                else
-                {
-                    tempAnchorPoint = GetIntersection(Item.TopRight, Item.BottomRight, Item.MidPoint, mousePosition);
-                }
+                tempAnchorPoint = mousePosition.X <= Item.MidPoint.X
+                    ? leftIntersect
+                    : GetIntersection(Item.TopRight, Item.BottomRight, Item.MidPoint, mousePosition);
             }
 
             AnchorPointDelta = Item.MidPoint - tempAnchorPoint;
             AnchorPoint = tempAnchorPoint;
         }
 
-
         public (float m, float c) ToLineEquation(Vector2 start, Vector2 end)
         {
-            if (end.X == start.X)
+            if (Math.Abs(end.X - start.X) < Constants.Tolerance)
             {
                 return (float.PositiveInfinity, start.X);
             }
@@ -115,54 +98,36 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public float GetX((float m, float c) equation, Vector2 point)
         {
-            if (equation.m == float.PositiveInfinity)
+            var (m, c) = equation;
+            if (float.IsPositiveInfinity(m))
             {
-                return equation.c;
+                return c;
             }
 
-            return (equation.c - point.Y) * equation.m;
+            return (c - point.Y) * m;
         }
 
         public float GetY((float m, float c) equation, Vector2 point)
         {
-            if (equation.m == float.PositiveInfinity)
+            var (m, c) = equation;
+            if (float.IsPositiveInfinity(m))
             {
                 return point.Y;
             }
 
-            return equation.m * point.X + equation.c;
+            return m * point.X + c;
         }
 
         public Vector2 GetIntersection(Vector2 edgeStart, Vector2 edgeEnd, Vector2 itemCenter, Vector2 mousePosition)
         {
-            var edge = ToLineEquation(edgeStart, edgeEnd);
+            var (m, c) = ToLineEquation(edgeStart, edgeEnd);
             var mouseLine = ToLineEquation(itemCenter, mousePosition);
 
-            float xIntersect;
-
             //Vertical Edge
-            if (edge.m == float.PositiveInfinity)
-            {
-                xIntersect = edge.c;
-            }
-            //Horizontal Edge
-            else
-            {
-                xIntersect = mousePosition.X;
-            }
+            var xIntersect = float.IsPositiveInfinity(m) ? c : mousePosition.X;
 
-
-            float yIntersect;
             //Vertical mouse line
-            if (mouseLine.m == float.PositiveInfinity)
-            {
-                yIntersect = edgeStart.Y;
-            }
-            //Horizontal mouse line
-            else
-            {
-                yIntersect = mousePosition.Y;
-            }
+            var yIntersect = float.IsPositiveInfinity(mouseLine.m) ? edgeStart.Y : mousePosition.Y;
 
             xIntersect = Math.Clamp(xIntersect, Item.Position.X, Item.Position.X + Item.Size.X);
             yIntersect = Math.Clamp(yIntersect, Item.Position.Y, Item.Position.Y + Item.Size.Y);
@@ -177,44 +142,50 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public Vector2 GetOffset()
         {
-            var largeOffset = 2.0f;
-            var smallOffset = 1.0f;
-            var AnchorOffset = Vector2.Zero;
+            const float largeOffset = 2.0f;
+            const float smallOffset = 2.0f;
 
             if (AnchorPoint == Item.TopLeft)
             {
-                AnchorOffset = AnchorPoint + new Vector2(-smallOffset, -smallOffset);
-            }
-            else if (AnchorPoint == Item.TopRight)
-            {
-                AnchorOffset = AnchorPoint + new Vector2(smallOffset, -smallOffset);
-            }
-            else if (AnchorPoint == Item.BottomRight)
-            {
-                AnchorOffset = AnchorPoint + new Vector2(smallOffset, smallOffset);
-            }
-            else if (AnchorPoint == Item.BottomLeft)
-            {
-                AnchorOffset = AnchorPoint + new Vector2(-smallOffset, smallOffset);
-            }
-            else if (AnchorPoint.Y == Item.TopLeft.Y)
-            {
-                AnchorOffset = AnchorPoint + new Vector2(0, -largeOffset);
-            }
-            else if (AnchorPoint.Y == Item.BottomRight.Y)
-            {
-                AnchorOffset = AnchorPoint + new Vector2(0, largeOffset);
-            }
-            else if (AnchorPoint.X == Item.TopLeft.X)
-            {
-                AnchorOffset = AnchorPoint + new Vector2(-largeOffset, 0);
-            }
-            else if (AnchorPoint.X == Item.BottomRight.X)
-            {
-                AnchorOffset = AnchorPoint + new Vector2(largeOffset, 0);
+                return AnchorPoint + new Vector2(-smallOffset, -smallOffset);
             }
 
-            return AnchorOffset;
+            if (AnchorPoint == Item.TopRight)
+            {
+                return AnchorPoint + new Vector2(smallOffset, -smallOffset);
+            }
+
+            if (AnchorPoint == Item.BottomRight)
+            {
+                return AnchorPoint + new Vector2(smallOffset, smallOffset);
+            }
+
+            if (AnchorPoint == Item.BottomLeft)
+            {
+                return AnchorPoint + new Vector2(-smallOffset, smallOffset);
+            }
+
+            if (Math.Abs(AnchorPoint.Y - Item.TopLeft.Y) < Constants.Tolerance)
+            {
+                return AnchorPoint + new Vector2(0, -largeOffset);
+            }
+
+            if (Math.Abs(AnchorPoint.Y - Item.BottomRight.Y) < Constants.Tolerance)
+            {
+                return AnchorPoint + new Vector2(0, largeOffset);
+            }
+
+            if (Math.Abs(AnchorPoint.X - Item.TopLeft.X) < Constants.Tolerance)
+            {
+                return AnchorPoint + new Vector2(-largeOffset, 0);
+            }
+
+            if (Math.Abs(AnchorPoint.X - Item.BottomRight.X) < Constants.Tolerance)
+            {
+                return AnchorPoint + new Vector2(largeOffset, 0);
+            }
+
+            return Vector2.Zero;
         }
     }
 }

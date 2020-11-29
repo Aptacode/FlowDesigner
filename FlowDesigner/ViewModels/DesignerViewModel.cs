@@ -27,6 +27,14 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public int Width { get; set; }
         public int Height { get; set; }
 
+        public void RedrawConnections()
+        {
+            foreach (var connection in _connections)
+            {
+                connection.Redraw();
+            }
+        }
+
         #region Commands
 
         private DelegateCommand<(string, Vector2, Vector2)> _createItem;
@@ -34,7 +42,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public DelegateCommand<(string, Vector2, Vector2)> CreateItem => _createItem ??=
             new DelegateCommand<(string, Vector2, Vector2)>(details =>
             {
-                var newItem = new ItemViewModel(Guid.NewGuid(), details.Item1, details.Item2, details.Item3);
+                var (name, position, size) = details;
+                var newItem = new ItemViewModel(Guid.NewGuid(), name, position, size);
                 _items.Add(newItem);
                 OnPropertyChanged(nameof(Connections));
             });
@@ -92,16 +101,20 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         private Vector2 MouseDelta { get; set; }
         private Vector2 ConnectionMouseDelta { get; set; }
 
+        private bool _movingItem;
+        private bool _resizingItem;
+
+
         public void MouseDown(Vector2 position)
         {
-            if (SelectedItem == null)
-            {
-                ClickItem(position);
-            }
-
             if (SelectedConnection == null)
             {
                 ClickConnection(position);
+            }
+
+            if (SelectedItem == null && SelectedConnection == null)
+            {
+                ClickItem(position);
             }
         }
 
@@ -152,49 +165,71 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             }
 
             BringToFront(SelectedItem);
-            MouseDelta = position - SelectedItem.Position;
+
+            if (SelectedItem.CollidesWithEdge(position))
+            {
+                MouseDelta = position - (SelectedItem.Position + SelectedItem.Size);
+
+                _resizingItem = true;
+            }
+            else
+            {
+                MouseDelta = position - SelectedItem.Position;
+                _movingItem = true;
+            }
         }
 
         private void MoveItem(Vector2 position)
         {
             var newPosition = position - MouseDelta;
 
-            SelectedItem.Position = newPosition;
-
-            if (!((newPosition - _lastDrawPoint).Length() > 2.0f))
+            if (_movingItem)
             {
-                return;
+                SelectedItem.Position = newPosition;
+
+                if ((newPosition - _lastDrawPoint).Length() <= 2.0f)
+                {
+                    return;
+                }
+                _lastDrawPoint = newPosition;
+
+                foreach (var connection in Connections)
+                {
+                    if(connection.Item1.Item == SelectedItem || connection.Item2.Item == SelectedItem)
+                    {
+                        connection.Redraw();
+                    }
+                }
+                
+
             }
-
-            _lastDrawPoint = newPosition;
-            var timer = new Stopwatch();
-            timer.Start();
-
-            foreach (var connection in Connections.Where(c =>
-                c.Item1.Item == SelectedItem || c.Item2.Item == SelectedItem))
+            else if (_resizingItem)
             {
-                connection.Refresh();
+                SelectedItem.Size = newPosition - SelectedItem.Position;
             }
-
-            timer.Stop();
         }
 
         private void ReleaseItem(Vector2 position)
         {
-            SelectedItem.Position = position - MouseDelta;
+            var newPosition = position - MouseDelta;
 
-            var timer = new Stopwatch();
-            timer.Start();
-
-            foreach (var connection in Connections.Where(c =>
-                c.Item1.Item == SelectedItem || c.Item2.Item == SelectedItem))
+            if (_movingItem)
             {
-                connection.Refresh();
+                SelectedItem.Position = newPosition;
+            }
+            else if (_resizingItem)
+            {
+                SelectedItem.Size = newPosition - SelectedItem.Position;
             }
 
-            timer.Stop();
+            foreach (var connection in Connections)
+            {
+                connection.Redraw();
+            }
 
             SelectedItem = null;
+            _movingItem = false;
+            _resizingItem = false;
         }
 
         private void ClickConnection(Vector2 position)
@@ -207,11 +242,13 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     break;
                 }
 
-                if (connection.Item2.CollidesWith(position))
+                if (!connection.Item2.CollidesWith(position))
                 {
-                    SelectedConnection = connection.Item2;
-                    break;
+                    continue;
                 }
+
+                SelectedConnection = connection.Item2;
+                break;
             }
 
             if (SelectedConnection != null)
@@ -227,9 +264,17 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 return;
             }
 
-            if (!SelectedConnection.Item.CollidesWith(position))
+            if (SelectedConnection.Item.CollidesWith(position))
             {
-                SelectedConnection.UpdateAnchorPointDelta(position);
+                return;
+            }
+
+            SelectedConnection.UpdateAnchorPointDelta(position);
+
+            foreach (var connection in Connections.Where(c =>
+                c.Item1.Item == SelectedConnection.Item || c.Item2.Item == SelectedConnection.Item))
+            {
+                connection.Redraw();
             }
         }
 

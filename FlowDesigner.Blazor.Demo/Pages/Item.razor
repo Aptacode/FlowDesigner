@@ -3,8 +3,10 @@
 
 <g id="@(Item.Id.ToString())">
 
-    <rect x="@X" y="@Y" width="@Width" height="@Height" fill="white" stroke="black" stroke-width="1"/>
-    <text style="-moz-user-select: none; -ms-user-select: none; -webkit-user-select: none; pointer-events: none; user-select: none;"
-          x="@(X + 20)" y="@(Y + 20)" fill="black">
-        @Item.Label</text>
+    <rect x="@X" y="@Y" width="@Width" height="@Height" fill="white" stroke="black" stroke-width="3" />
+
+    <text x="@(X + Width / 2)" y="@(Y + Height /2)" dominant-baseline="middle" text-anchor="middle" style="-moz-user-select: none; -ms-user-select: none; -webkit-user-select: none; pointer-events: none; user-select: none;"
+        fill="black">
+        @Item.Label
+    </text>
 </g>

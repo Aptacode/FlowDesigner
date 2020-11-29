@@ -9,23 +9,22 @@
      @onmouseout="MouseOut">
     <defs>
         <pattern id="tenthGrid" width="10" height="10" patternUnits="userSpaceOnUse">
-            <path d="M 10 0 L 0 0 0 10" fill="none" stroke="silver" stroke-width="1"/>
+            <path d="M 10 0 L 0 0 0 10" fill="none" stroke="silver" stroke-width="1" />
         </pattern>
         <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-            <rect width="40" height="40" fill="url(#tenthGrid)"/>
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="gray" stroke-width="1"/>
+            <rect width="40" height="40" fill="url(#tenthGrid)" />
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="gray" stroke-width="1" />
         </pattern>
     </defs>
-    <rect width="100%" height="100%" fill="url(#grid)"/>
-
-    @foreach (var item in Designer.Items)
-    {
-        <Item Item="item" @key="item.Id"/>
-    }
+    <rect width="100%" height="100%" fill="url(#grid)" />
 
     @foreach (var connection in Designer.Connections)
     {
-        <Connection Connection="connection"/>
+        <Connection Connection="connection" />
+    }
+    @foreach (var item in Designer.Items)
+    {
+        <Item Item="item" @key="item.Id" />
     }
 
 </svg>

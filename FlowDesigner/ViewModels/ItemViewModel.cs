@@ -6,7 +6,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 {
     public class ItemViewModel : BindableBase
     {
-        private int _anchorPointCount;
         private Vector2 _position;
 
         private Vector2 _size;
@@ -50,10 +49,14 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public Vector2 BottomRight => Position + Size;
         public Vector2 BottomLeft => Position + Size * new Vector2(0, 1);
 
-        public int AnchorPointCount => (int) (2 * (_size.X + _size.Y));
-
         public bool CollidesWith(Vector2 position) =>
             position.X >= Position.X && position.X <= Position.X + Size.X &&
             position.Y >= Position.Y && position.Y <= Position.Y + Size.Y;
+
+        public bool CollidesWithEdge(Vector2 position) =>
+            CollidesWith(position) &&
+            (position.X <= Position.X + 1 || position.X >= Position.X + Size.X - 1)
+            &&
+            (position.Y <= Position.Y + 1 || position.Y >= Position.Y + Size.Y - 1);
     }
 }

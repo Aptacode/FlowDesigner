@@ -8,9 +8,11 @@ namespace Aptacode.FlowDesigner.Core.Extensions
     {
         public static StringBuilder Add(this StringBuilder path, Vector2 point)
         {
-            path.Append(point.X * DesignerViewModel.ScaleFactor).Append(' ')
+            path.Append(' ')
+                .Append(point.X * DesignerViewModel.ScaleFactor)
+                .Append(",")
                 .Append(point.Y * DesignerViewModel.ScaleFactor);
-            path.Append("L ");
+
             return path;
         }
     }

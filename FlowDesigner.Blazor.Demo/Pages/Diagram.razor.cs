@@ -14,17 +14,20 @@ namespace FlowDesigner.Blazor.Demo.Pages
         protected override async Task OnInitializedAsync()
         {
             Designer = new DesignerViewModel();
-            Designer.CreateItem.Execute(("State 1", new Vector2(10, 10), new Vector2(10, 4)));
-            Designer.CreateItem.Execute(("State 2", new Vector2(10, 20), new Vector2(10, 4)));
-            Designer.CreateItem.Execute(("State 3", new Vector2(25, 30), new Vector2(10, 4)));
-            Designer.CreateItem.Execute(("State 4", new Vector2(10, 40), new Vector2(10, 4)));
-            Designer.CreateItem.Execute(("State 5", new Vector2(10, 50), new Vector2(10, 4)));
-            Designer.CreateItem.Execute(("State 6", new Vector2(25, 60), new Vector2(10, 4)));
+            Designer.CreateItem.Execute(("State 1", new Vector2(8, 8), new Vector2(8, 4)));
+            Designer.CreateItem.Execute(("State 2", new Vector2(8, 16), new Vector2(8, 4)));
+            Designer.CreateItem.Execute(("State 3", new Vector2(25, 30), new Vector2(8, 4)));
+            Designer.CreateItem.Execute(("State 4", new Vector2(10, 40), new Vector2(8, 4)));
+            Designer.CreateItem.Execute(("State 5", new Vector2(10, 50), new Vector2(8, 4)));
+            Designer.CreateItem.Execute(("State 6", new Vector2(25, 60), new Vector2(8, 4)));
+
             var items = Designer.Items.ToList();
             Designer.Connect.Execute((items[0], items[1]));
             Designer.Connect.Execute((items[0], items[2]));
-            Designer.Connect.Execute((items[0], items[3]));
-            Designer.Connect.Execute((items[0], items[4]));
+            Designer.Connect.Execute((items[1], items[3]));
+            Designer.Connect.Execute((items[1], items[4]));
+
+            Designer.RedrawConnections();
 
             await base.OnInitializedAsync();
         }
