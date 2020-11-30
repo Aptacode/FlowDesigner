@@ -26,7 +26,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             Item.PropertyChanged += Item_PropertyChanged;
             Mode = mode;
             ConnectionPointSize = new Vector2(1, 1);
-            UpdateAnchorPointDelta(Item.MidPoint);
+            UpdateAnchorPointDelta(Item.TopLeft + new Vector2(1, 0));
         }
 
         public ItemViewModel Item { get; set; }
@@ -65,63 +65,27 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public void UpdateAnchorPointDelta(Vector2 mousePosition)
         {
-            Vector2 tempAnchorPoint;
-            var mouseLine = Vector2.Normalize(mousePosition - Item.MidPoint);
-            var topLeftDot = Vector2.Dot(Vector2.Normalize(Item.TopLeft - Item.MidPoint), mouseLine);
-            var topRightDot = Vector2.Dot(Vector2.Normalize(Item.TopRight - Item.MidPoint), mouseLine);
-            var bottomRightDot = Vector2.Dot(Vector2.Normalize(Item.BottomRight - Item.MidPoint), mouseLine);
-            var bottomLeftDot = Vector2.Dot(Vector2.Normalize(Item.BottomLeft - Item.MidPoint), mouseLine);
+            Vector2 tempAnchorPoint = AnchorPoint;
 
-            var pairs = new List<(int,float)>
-            {
-                (0, topLeftDot + topRightDot),
-                (1, topRightDot + bottomRightDot),
-                (2, bottomRightDot + bottomLeftDot),
-                (3, bottomLeftDot + topLeftDot),
-            };
-
-            var edge = pairs.OrderByDescending(p => p.Item2).First().Item1;
-            if(edge == 0)
+            if(mousePosition.Y <= Item.TopLeft.Y && mousePosition.X >= Item.TopLeft.X && mousePosition.X <= Item.TopRight.X) 
             {
                 tempAnchorPoint = GetIntersection(Item.TopLeft, Item.TopRight, Item.MidPoint, mousePosition);
-            }else if(edge == 1)
+            }else if(mousePosition.X >= Item.TopRight.X && mousePosition.Y >= Item.TopRight.Y && mousePosition.Y <= Item.BottomRight.Y)
             {
                 tempAnchorPoint = GetIntersection(Item.TopRight, Item.BottomRight, Item.MidPoint, mousePosition);
 
             }
-            else if(edge == 2)
+            else if(mousePosition.Y >= Item.BottomRight.Y && mousePosition.X >= Item.TopLeft.X && mousePosition.X <= Item.TopRight.X)
             {
                 tempAnchorPoint = GetIntersection(Item.BottomRight, Item.BottomLeft, Item.MidPoint, mousePosition);
-            }
-            else
+            }else if(mousePosition.X <= Item.TopLeft.X && mousePosition.Y >= Item.TopRight.Y && mousePosition.Y <= Item.BottomRight.Y)
             {
                 tempAnchorPoint = GetIntersection(Item.BottomLeft, Item.TopLeft, Item.MidPoint, mousePosition);
-
-            }
-
-            Console.WriteLine(string.Join(", ", pairs));
-            AnchorPointDelta = Item.MidPoint - tempAnchorPoint;
-            AnchorPoint = tempAnchorPoint;
-            return;
-
-
-            var topIntersect = GetIntersection(Item.TopLeft, Item.TopRight, Item.MidPoint, mousePosition);
-            if (topIntersect.X >= Item.TopLeft.X && topIntersect.X <= Item.TopRight.X)
-            {
-                tempAnchorPoint = mousePosition.Y <= Item.MidPoint.Y
-                    ? topIntersect
-                    : GetIntersection(Item.BottomLeft, Item.BottomRight, Item.MidPoint, mousePosition);
-            }
-            else
-            {
-                var leftIntersect = GetIntersection(Item.TopLeft, Item.BottomLeft, Item.MidPoint, mousePosition);
-                tempAnchorPoint = mousePosition.X <= Item.MidPoint.X
-                    ? leftIntersect
-                    : GetIntersection(Item.TopRight, Item.BottomRight, Item.MidPoint, mousePosition);
             }
 
             AnchorPointDelta = Item.MidPoint - tempAnchorPoint;
             AnchorPoint = tempAnchorPoint;
+     
         }
 
         public (float m, float c) ToLineEquation(Vector2 start, Vector2 end)
@@ -147,8 +111,33 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             //Vertical mouse line
             var yIntersect = float.IsPositiveInfinity(mouseM) ? edgeStart.Y : mousePosition.Y;
 
-            xIntersect = Math.Clamp(xIntersect, Item.Position.X, Item.Position.X + Item.Size.X);
-            yIntersect = Math.Clamp(yIntersect, Item.Position.Y, Item.Position.Y + Item.Size.Y);
+            var minX = Item.Position.X;
+            var minY = Item.Position.Y;
+            var maxX = Item.Position.X + Item.Size.X;
+            var maxY = Item.Position.Y + Item.Size.Y;
+
+            if (xIntersect <= minX && yIntersect <= minY)
+            {
+                xIntersect = minX + 1;
+                yIntersect = minY;
+            }else if (xIntersect >= maxX && yIntersect <= minY)
+            {
+                xIntersect = maxX;
+                yIntersect = minY + 1;
+            }else if (xIntersect >= maxX && yIntersect >= maxY)
+            {
+                xIntersect = maxX - 1;
+                yIntersect = maxY;
+            }else if (xIntersect <= minX && yIntersect >= maxY)
+            {
+                xIntersect = minX;
+                yIntersect = maxY - 1;
+            }
+            else
+            {
+                xIntersect = Math.Clamp(xIntersect, Item.Position.X, Item.Position.X + Item.Size.X);
+                yIntersect = Math.Clamp(yIntersect, Item.Position.Y, Item.Position.Y + Item.Size.Y);
+            }
 
             return new Vector2(xIntersect, yIntersect);
         }

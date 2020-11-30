@@ -327,11 +327,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
             _connectedItem.UpdateAnchorPointDelta(position);
 
-            foreach (var connection in Connections.Where(c =>
-                c.Item1.Item == _connectedItem.Item || c.Item2.Item == _connectedItem.Item))
-            {
-                connection.Redraw();
-            }
+            SelectedConnection.Redraw();
         }
 
         private void ReleaseConnection(Vector2 position)
