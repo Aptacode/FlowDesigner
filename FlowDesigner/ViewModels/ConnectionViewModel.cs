@@ -15,6 +15,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
     public class ConnectionViewModel : BindableBase
     {
         private string _path;
+        private int _z;
         private Color _borderColor = Color.Black;
 
         public ConnectionViewModel(Guid id, string label, DesignerViewModel designer, ItemViewModel item1,
@@ -24,6 +25,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             Label = label;
             Item1 = new ConnectedItem(item1, ConnectionMode.Out);
             Item2 = new ConnectedItem(item2, ConnectionMode.In);
+            Z = 10;
 
             Designer = designer;
 
@@ -87,6 +89,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         {
             get => _borderColor;
             set => SetProperty(ref _borderColor, value);
+        }
+
+        public int Z
+        {
+            get => _z;
+            set => SetProperty(ref _z, value);
         }
 
         internal bool IsConnectedTo(ItemViewModel item) => Item1.Item == item || Item2.Item == item;

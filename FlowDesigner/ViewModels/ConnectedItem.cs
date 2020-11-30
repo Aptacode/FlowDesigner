@@ -26,7 +26,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             Item.PropertyChanged += Item_PropertyChanged;
             Mode = mode;
             ConnectionPointSize = new Vector2(1, 1);
-            UpdateAnchorPointDelta(Item.TopLeft + new Vector2(1, 0));
+            UpdateAnchorPointDelta(new Vector2(Item.TopRight.X, Item.MidPoint.Y));
         }
 
         public ItemViewModel Item { get; set; }

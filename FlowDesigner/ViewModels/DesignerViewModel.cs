@@ -22,7 +22,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         }
 
         public IEnumerable<ItemViewModel> Items => _items.OrderBy(i => i.Z);
-        public IEnumerable<ConnectionViewModel> Connections => _connections;
+        public IEnumerable<ConnectionViewModel> Connections => _connections.OrderBy(i => i.Z);
 
         public int Width { get; set; }
         public int Height { get; set; }
@@ -72,6 +72,25 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             }
 
             item.Z = min - 1;
+        }
+
+        public void BringToFront(ConnectionViewModel connection)
+        {
+            connection.Z = _connections.Max(i => i.Z) + 1;
+        }
+
+        public void SendToBack(ConnectionViewModel connection)
+        {
+            var min = _connections.Min(i => i.Z);
+            if (min <= 1)
+            {
+                foreach (var i in Items)
+                {
+                    i.Z++;
+                }
+            }
+
+            connection.Z = min - 1;
         }
 
         private DelegateCommand<ItemViewModel> _deleteItem;
@@ -221,6 +240,15 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 return;
             }
 
+            foreach(var connection in _connections)
+            {
+                if(connection.Item1.Item == SelectedItem || connection.Item2.Item == SelectedItem)
+                {
+                    BringToFront(connection);
+                    connection.BorderColor = Color.Green;
+                }
+            }
+
             BringToFront(SelectedItem);
 
             if (SelectedItem.CollidesWithEdge(position))
@@ -285,6 +313,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
             foreach (var connection in Connections)
             {
+                connection.BorderColor = Color.Black;
                 connection.Redraw();
             }
 
@@ -310,6 +339,11 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     SelectedConnection = connection;
                     break;
                 }
+            }
+
+            if(SelectedConnection != null)
+            {
+                BringToFront(SelectedConnection);
             }
         }
 
