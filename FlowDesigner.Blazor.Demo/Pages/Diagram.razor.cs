@@ -4,12 +4,26 @@ using System.Threading.Tasks;
 using Aptacode.FlowDesigner.Core.ViewModels;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 
 namespace FlowDesigner.Blazor.Demo.Pages
 {
     public class DiagramBase : ComponentBase
     {
         public DesignerViewModel Designer { get; set; }
+
+        protected ElementReference diagram;  // set by the @ref attribute
+
+        [Inject] IJSRuntime JSRuntime { get; set; }
+
+        protected async override Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender)
+            {
+                await JSRuntime.InvokeVoidAsync("SetFocusToElement", diagram);
+            }
+        }
+
 
         protected override async Task OnInitializedAsync()
         {
@@ -47,6 +61,15 @@ namespace FlowDesigner.Blazor.Demo.Pages
         public void MouseMove(MouseEventArgs e)
         {
             Designer.MouseMove(e.ToPosition());
+        }
+
+        public void KeyDown(KeyboardEventArgs e)
+        {
+            Designer.KeyDown(e.Key);
+        }
+        public void KeyUp(KeyboardEventArgs e)
+        {
+            Designer.KeyUp(e.Key);
         }
     }
 }

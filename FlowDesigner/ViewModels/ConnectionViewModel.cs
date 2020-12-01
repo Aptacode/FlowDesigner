@@ -55,17 +55,17 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         {
             try
             {       
-                MapBuilder _mapBuilder = new MapBuilder();
+                var mapBuilder = new MapBuilder();
 
                 foreach (var item in Designer.Items.ToList())
                 {
-                    _mapBuilder.AddObstacle(item.Position - Vector2.One, item.Size + (Vector2.One * 2));
+                    mapBuilder.AddObstacle(item.Position - Vector2.One, item.Size + (Vector2.One * 2));
                 }
 
-                _mapBuilder.SetStart(Item1.GetOffset());
-                _mapBuilder.SetEnd(Item2.GetOffset());
-                _mapBuilder.SetDimensions(Designer.Width, Designer.Height);
-                var map = _mapBuilder.Build();
+                mapBuilder.SetStart(Item1.GetOffset());
+                mapBuilder.SetEnd(Item2.GetOffset());
+                mapBuilder.SetDimensions(Designer.Width, Designer.Height);
+                var map = mapBuilder.Build();
                 var pathFinder =
                     new PathFinder.Algorithm.PathFinder(map, DefaultNeighbourFinder.Straight(0.5f));
                 ConnectionPath = pathFinder.FindPath();

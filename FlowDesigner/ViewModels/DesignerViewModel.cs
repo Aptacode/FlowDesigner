@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -37,14 +38,14 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         #region Events
 
-        public event EventHandler<ItemViewModel> SelectedItemChanged;
+        public event EventHandler<IEnumerable<ItemViewModel>> SelectedItemChanged;
         public event EventHandler<ConnectionViewModel> SelectedConnectionChanged;
 
         #endregion
 
         #region Commands
 
-        private DelegateCommand<(string, Vector2, Vector2)> _createItem;
+        private DelegateCommand<(string, Vector2, Vector2)>? _createItem;
 
         public DelegateCommand<(string, Vector2, Vector2)> CreateItem => _createItem ??=
             new DelegateCommand<(string, Vector2, Vector2)>(details =>
@@ -60,6 +61,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             item.Z = Items.Max(i => i.Z) + 1;
         }
 
+        public string? KeyPressed;
+        public void KeyDown(string key)
+        {
+            KeyPressed = key;
+        }
+
         public void SendToBack(ItemViewModel item)
         {
             var min = Items.Min(i => i.Z);
@@ -72,6 +79,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             }
 
             item.Z = min - 1;
+        }
+
+        public void KeyUp(string key)
+        {
+            KeyPressed = null;
+            ReleaseItem();
         }
 
         public void BringToFront(ConnectionViewModel connection)
@@ -93,7 +106,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             connection.Z = min - 1;
         }
 
-        private DelegateCommand<ItemViewModel> _deleteItem;
+        private DelegateCommand<ItemViewModel>? _deleteItem;
 
         public DelegateCommand<ItemViewModel> DeleteItem => _deleteItem ??= new DelegateCommand<ItemViewModel>(item =>
         {
@@ -106,7 +119,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             OnPropertyChanged(nameof(Items));
         });
 
-        private DelegateCommand<(ItemViewModel item1, ItemViewModel item2)> _connect;
+        private DelegateCommand<(ItemViewModel item1, ItemViewModel item2)>? _connect;
 
         public DelegateCommand<(ItemViewModel item1, ItemViewModel item2)> Connect => _connect ??=
             new DelegateCommand<(ItemViewModel item1, ItemViewModel item2)>(tuple =>
@@ -121,36 +134,44 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         #region Mouse
 
-        private ItemViewModel? _selectedItem;
+        public readonly List<ItemViewModel> SelectedItems = new List<ItemViewModel>();
 
-        public ItemViewModel? SelectedItem
+        public void ClearSelectedItems()
         {
-            get { return _selectedItem; }
-            set {
+            SelectedItems.Clear();
+            UpdateSelectedItems();
+        }
 
-                var prevSelectedItem = _selectedItem;
-
-                SetProperty(ref _selectedItem, value);
-
-                //Highlight Item
-                if(prevSelectedItem != null)
-                {
-                    prevSelectedItem.BorderColor = Color.Black;
-                }
-                if (_selectedItem != null)
-                {
-                    _selectedItem.BorderColor = Color.Green;
-                }
-
-                SelectedItemChanged?.Invoke(this, _selectedItem);
+        public void UpdateSelectedItems()
+        {
+            //Remove item highlight
+            foreach (var item in Items)
+            {
+                item.BorderColor = Color.Black;
             }
+
+            //Highlight Selected Items
+            foreach (var item in SelectedItems)
+            {
+                BringToFront(item);
+                item.BorderColor = Color.Green;
+            }
+
+            //Highlight any connections for a selected item
+            foreach (var connection in _connections.Where(connection => SelectedItems.Any(connection.IsConnectedTo)))
+            {
+                BringToFront(connection);
+                connection.BorderColor = Color.Green;
+            }
+
+            SelectedItemChanged?.Invoke(this, SelectedItems);
         }
 
         private ConnectionViewModel? _selectedConnection;
 
         public ConnectionViewModel? SelectedConnection
         {
-            get { return _selectedConnection; }
+            get => _selectedConnection;
             set
             {
 
@@ -175,7 +196,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         private ConnectedItem? _connectedItem { get; set; }
 
-        private Vector2 MouseDelta { get; set; }
+        private Vector2 LastMousePosition { get; set; }
 
         private bool _movingItem;
         private bool _resizingItem;
@@ -188,7 +209,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 ClickConnection(position);
             }
 
-            if (SelectedItem == null && SelectedConnection == null)
+            if (SelectedConnection == null)
             {
                 ClickItem(position);
             }
@@ -196,7 +217,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public void MouseMove(Vector2 position)
         {
-            if (SelectedItem != null)
+            if (SelectedItems != null)
             {
                 MoveItem(position);
             }
@@ -209,9 +230,9 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public void MouseUp(Vector2 position)
         {
-            if (SelectedItem != null)
+            if (SelectedItems != null)
             {
-                ReleaseItem(position);
+                ReleaseItem();
             }
 
             if (SelectedConnection != null)
@@ -224,91 +245,93 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         private void ClickItem(Vector2 position)
         {
-            foreach (var item in Items)
-            {
-                if (!item.CollidesWith(position))
-                {
-                    continue;
-                }
 
-                SelectedItem = item;
-                break;
-            }
+            var selectedItem = Items.FirstOrDefault(item => item.CollidesWith(position));
 
-            if (SelectedItem == null)
+            //If no item was selected
+            if(selectedItem == default && string.IsNullOrEmpty(KeyPressed))
             {
+                ClearSelectedItems();
                 return;
             }
 
-            foreach(var connection in _connections)
+            //If the item was not yet selected
+            if (!SelectedItems.Contains(selectedItem))
             {
-                if(connection.Item1.Item == SelectedItem || connection.Item2.Item == SelectedItem)
+                SelectedItems.Add(selectedItem);
+                if (string.IsNullOrEmpty(KeyPressed))
                 {
-                    BringToFront(connection);
-                    connection.BorderColor = Color.Green;
+                    LastMousePosition = position;
+                    _movingItem = true;
                 }
             }
-
-            BringToFront(SelectedItem);
-
-            if (SelectedItem.CollidesWithEdge(position))
+            //If the border of the item was selected -> resize the item
+            else if(selectedItem.CollidesWithEdge(position))
             {
-                MouseDelta = position - (SelectedItem.Position + SelectedItem.Size);
+                ClearSelectedItems();
+                SelectedItems.Add(selectedItem);
 
+                LastMousePosition = position - (selectedItem.Position + selectedItem.Size);
                 _resizingItem = true;
             }
+            //If the center of the item was selected -> Move the selected items
             else
             {
-                MouseDelta = position - SelectedItem.Position;
+                LastMousePosition = position;
                 _movingItem = true;
             }
+
+            UpdateSelectedItems();
         }
 
         private void MoveItem(Vector2 position)
         {
-            var newPosition = position - MouseDelta;
-
             if (_movingItem)
             {
-                SelectedItem.Position = newPosition;
-
-                if ((newPosition - _lastDrawPoint).Length() <= 1.0f)
+                var delta = position - LastMousePosition;
+                if (delta.Length() <= 2.0f)
                 {
                     return;
                 }
-                _lastDrawPoint = newPosition;
+
+                LastMousePosition = position;
+
+                foreach (var item in SelectedItems)
+                {
+                    item.Position += delta;
+                }
 
                 foreach (var connection in Connections)
                 {
-                    if(connection.Item1.Item == SelectedItem || connection.Item2.Item == SelectedItem)
+                    if (SelectedItems.Any(i => connection.IsConnectedTo(i)))
                     {
                         connection.Redraw();
                         continue;
                     }
-                    if (connection.ConnectionPath.Any(p => SelectedItem.CollidesWith(p)))
+
+                    if (!connection.ConnectionPath.Any(p => SelectedItems.Any(c => c.CollidesWith(p))))
                     {
-                        connection.Redraw();
                         continue;
                     }
+
+                    connection.Redraw();
                 }
+
             }
             else if (_resizingItem)
             {
-                SelectedItem.Size = newPosition - SelectedItem.Position;
+               // SelectedItems.Size = newPosition - SelectedItems.Position;
             }
         }
 
-        private void ReleaseItem(Vector2 position)
+        private void ReleaseItem()
         {
-            var newPosition = position - MouseDelta;
+            _movingItem = false;
+            _resizingItem = false;
 
-            if (_movingItem)
+            if (!string.IsNullOrEmpty(KeyPressed))
             {
-                SelectedItem.Position = newPosition;
-            }
-            else if (_resizingItem)
-            {
-                SelectedItem.Size = newPosition - SelectedItem.Position;
+                return;
             }
 
             foreach (var connection in Connections)
@@ -317,9 +340,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 connection.Redraw();
             }
 
-            SelectedItem = null;
-            _movingItem = false;
-            _resizingItem = false;
+            ClearSelectedItems();
         }
 
         private void ClickConnection(Vector2 position)
@@ -333,12 +354,14 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     break;
                 }
 
-                if (connection.Item2.CollidesWith(position))
+                if (!connection.Item2.CollidesWith(position))
                 {
-                    _connectedItem = connection.Item2;
-                    SelectedConnection = connection;
-                    break;
+                    continue;
                 }
+
+                _connectedItem = connection.Item2;
+                SelectedConnection = connection;
+                break;
             }
 
             if(SelectedConnection != null)

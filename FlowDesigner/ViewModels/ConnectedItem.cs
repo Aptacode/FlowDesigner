@@ -65,7 +65,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public void UpdateAnchorPointDelta(Vector2 mousePosition)
         {
-            Vector2 tempAnchorPoint = AnchorPoint;
+            var tempAnchorPoint = AnchorPoint;
 
             if(mousePosition.Y <= Item.TopLeft.Y && mousePosition.X >= Item.TopLeft.X && mousePosition.X <= Item.TopRight.X) 
             {
