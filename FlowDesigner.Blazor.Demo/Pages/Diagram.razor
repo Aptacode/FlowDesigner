@@ -3,7 +3,7 @@
 
 <h1>Designer</h1>
 <div @ref="diagram"
-         tabindex="0"
+     tabindex="0"
      @onkeydown="KeyDown"
      @onkeyup="KeyUp">
     <svg width="800" height="600"
@@ -35,3 +35,24 @@
     </svg>
 
 </div>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">First</th>
+            <th scope="col">Last</th>
+            <th scope="col">Handle</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Designer.Items)
+        {
+            <tr>
+                <td>
+                    @item.Label
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
