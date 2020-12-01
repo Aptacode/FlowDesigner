@@ -1,0 +1,6 @@
+﻿@inherits SelectionBase
+
+@if (Selection.IsShown)
+{
+    <rect x="@X" y="@Y" width="@Width" height="@Height" fill-opacity="0.4" fill="lightblue" stroke="@(Selection.BorderColor.ToKnownColor())" stroke-width="3" />
+}

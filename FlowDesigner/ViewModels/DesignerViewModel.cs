@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
+using Aptacode.CSharp.Common.Utilities.Extensions;
 using Aptacode.CSharp.Common.Utilities.Mvvm;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels
@@ -15,12 +16,22 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         private readonly List<ConnectionViewModel> _connections = new List<ConnectionViewModel>();
 
         private readonly List<ItemViewModel> _items = new List<ItemViewModel>();
+        private ConnectedItem? _connectedItem { get; set; }
+
+        private Vector2 LastMousePosition { get; set; }
+        private Vector2 MouseDownPosition { get; set; }
+
+        private bool _movingItem;
+        private bool _resizingItem;
+        public string? KeyPressed;
 
         public DesignerViewModel()
         {
             Width = 100;
             Height = 100;
+            Selection = new SelectionViewModel(Vector2.Zero, Vector2.Zero);
         }
+        public SelectionViewModel Selection { get; set; }
 
         public IEnumerable<ItemViewModel> Items => _items.OrderBy(i => i.Z);
         public IEnumerable<ConnectionViewModel> Connections => _connections.OrderBy(i => i.Z);
@@ -61,7 +72,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             item.Z = Items.Max(i => i.Z) + 1;
         }
 
-        public string? KeyPressed;
         public void KeyDown(string key)
         {
             KeyPressed = key;
@@ -194,16 +204,9 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         }
 
 
-        private ConnectedItem? _connectedItem { get; set; }
-
-        private Vector2 LastMousePosition { get; set; }
-
-        private bool _movingItem;
-        private bool _resizingItem;
-
-
         public void MouseDown(Vector2 position)
         {
+            MouseDownPosition = position;
             if (SelectedConnection == null)
             {
                 ClickConnection(position);
@@ -245,13 +248,15 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         private void ClickItem(Vector2 position)
         {
-
             var selectedItem = Items.FirstOrDefault(item => item.CollidesWith(position));
 
             //If no item was selected
             if(selectedItem == default && string.IsNullOrEmpty(KeyPressed))
             {
                 ClearSelectedItems();
+                Selection.IsShown = true;
+                Selection.Position = position;
+                Selection.Size = Vector2.Zero;
                 return;
             }
 
@@ -286,7 +291,33 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         private void MoveItem(Vector2 position)
         {
-            if (_movingItem)
+            if (Selection.IsShown)
+            {
+                Selection.Size = Vector2.Abs(MouseDownPosition - position);
+
+                if (position.X <= MouseDownPosition.X)
+                {
+                    if(position.Y <= MouseDownPosition.Y)
+                    {
+                        Selection.Position = position;
+                    }
+                    else
+                    {
+                        Selection.Position = new Vector2(position.X, MouseDownPosition.Y);
+                    }
+                }else
+                {
+                    if (position.Y <= MouseDownPosition.Y)
+                    {
+                        Selection.Position = new Vector2(MouseDownPosition.X, position.Y);
+                    }
+                    else
+                    {
+                        Selection.Position = MouseDownPosition;
+                    }
+                }
+            }
+            else if (_movingItem)
             {
                 var delta = position - LastMousePosition;
                 if (delta.Length() <= 2.0f)
@@ -328,6 +359,15 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         {
             _movingItem = false;
             _resizingItem = false;
+
+            if (Selection.IsShown)
+            {
+                Selection.IsShown = false;
+
+                SelectedItems.AddRange(Items.Where(i => i.CollidesWith(Selection)));
+                UpdateSelectedItems();
+                return;
+            }
 
             if (!string.IsNullOrEmpty(KeyPressed))
             {

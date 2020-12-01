@@ -22,9 +22,6 @@
     <Compile Update="Pages\Item - Copy - Copy.razor.cs">
       <DependentUpon>Item - Copy.razor.cs</DependentUpon>
     </Compile>
-    <Compile Update="Pages\Item - Copy.razor.cs">
-      <DependentUpon>Item.razor.cs</DependentUpon>
-    </Compile>
   </ItemGroup>
 
 </Project>
