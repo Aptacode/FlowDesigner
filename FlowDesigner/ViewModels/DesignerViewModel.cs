@@ -328,7 +328,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 foreach (var item in SelectedItems)
                 {
                     item.Position += delta;
-                    var collidingItems = unselectedItems.Where(i => i.CollidesWith(item, Vector2.One)).ToList();
+                    var collidingItems = unselectedItems.Where(i => i.CollidesWith(item, new Vector2(2,2))).ToList();
                     movingItems.AddRange(collidingItems);
                     foreach (var collidingItem in collidingItems)
                     {

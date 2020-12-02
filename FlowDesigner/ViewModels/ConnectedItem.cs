@@ -18,21 +18,21 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         private Vector2 _anchorPointDelta;
 
-        private Vector2 _connectionPointSize;
+        private float _connectionPointSize;
 
         public ConnectedItem(ItemViewModel item, ConnectionMode mode)
         {
             Item = item;
             Item.PropertyChanged += Item_PropertyChanged;
             Mode = mode;
-            ConnectionPointSize = new Vector2(1, 1);
+            ConnectionPointSize = 0.5f;
             UpdateAnchorPointDelta(new Vector2(Item.TopRight.X, Item.MidPoint.Y));
         }
 
         public ItemViewModel Item { get; set; }
         public ConnectionMode Mode { get; set; }
 
-        public Vector2 ConnectionPointSize
+        public float ConnectionPointSize
         {
             get => _connectionPointSize;
             set => SetProperty(ref _connectionPointSize, value);
@@ -143,9 +143,9 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         }
 
         public bool CollidesWith(Vector2 position) =>
-            position.X >= AnchorPoint.X - ConnectionPointSize.X &&
-            position.X <= AnchorPoint.X + ConnectionPointSize.X &&
-            position.Y >= AnchorPoint.Y - ConnectionPointSize.Y && position.Y <= AnchorPoint.Y + ConnectionPointSize.Y;
+            position.X >= AnchorPoint.X - ConnectionPointSize &&
+            position.X <= AnchorPoint.X + ConnectionPointSize &&
+            position.Y >= AnchorPoint.Y - ConnectionPointSize && position.Y <= AnchorPoint.Y + ConnectionPointSize;
 
         public Vector2 GetOffset()
         {
