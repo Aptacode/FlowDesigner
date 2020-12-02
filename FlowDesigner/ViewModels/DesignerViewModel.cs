@@ -291,6 +291,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         private void MoveItem(Vector2 position)
         {
+            var movingItems = SelectedItems.ToHashSet();
             if (Selection.IsShown)
             {
                 Selection.Size = Vector2.Abs(MouseDownPosition - position);
@@ -320,32 +321,29 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             else if (_movingItem)
             {
                 var delta = position - LastMousePosition;
-                if (delta.Length() <= 2.0f)
-                {
-                    return;
-                }
 
                 LastMousePosition = position;
 
+                var unselectedItems = Items.Except(SelectedItems);
                 foreach (var item in SelectedItems)
                 {
                     item.Position += delta;
+                    var collidingItems = unselectedItems.Where(i => i.CollidesWith(item, Vector2.One)).ToList();
+                    movingItems.AddRange(collidingItems);
+                    foreach (var collidingItem in collidingItems)
+                    {
+                        collidingItem.Position += delta;
+                    }
                 }
 
                 foreach (var connection in Connections)
                 {
-                    if (SelectedItems.Any(i => connection.IsConnectedTo(i)))
+                    //If the item is moving or 
+                    if (movingItems.Any(i => connection.IsConnectedTo(i)) ||
+                        connection.ConnectionPath.Any(p => movingItems.Any(c => c.CollidesWith(p))))
                     {
                         connection.Redraw();
-                        continue;
                     }
-
-                    if (!connection.ConnectionPath.Any(p => SelectedItems.Any(c => c.CollidesWith(p))))
-                    {
-                        continue;
-                    }
-
-                    connection.Redraw();
                 }
 
             }

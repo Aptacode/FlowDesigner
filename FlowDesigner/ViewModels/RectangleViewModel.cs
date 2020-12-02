@@ -77,5 +77,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                Position.Y < rectangle.BottomRight.Y &&
                BottomRight.Y > rectangle.Position.Y;
         }
+        public bool CollidesWith(RectangleViewModel rectangle, Vector2 perimeter)
+        {
+            return Position.X < rectangle.TopRight.X + perimeter.X &&
+               TopRight.X > rectangle.TopLeft.X - perimeter.X &&
+               Position.Y < rectangle.BottomRight.Y + perimeter.Y &&
+               BottomRight.Y > rectangle.Position.Y - perimeter.Y;
+        }
     }
 }
