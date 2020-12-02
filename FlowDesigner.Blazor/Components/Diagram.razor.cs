@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 
-namespace FlowDesigner.Blazor.Demo.Pages
+namespace FlowDesigner.Blazor.Components
 {
     public class DiagramBase : ComponentBase
     {

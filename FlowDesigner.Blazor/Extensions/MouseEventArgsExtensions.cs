@@ -1,13 +1,8 @@
-﻿using System.Linq;
-using System.Numerics;
-using System.Threading.Tasks;
-using Aptacode.FlowDesigner.Core.ViewModels;
-using Microsoft.AspNetCore.Components;
+﻿using System.Numerics;
 using Microsoft.AspNetCore.Components.Web;
 
-namespace FlowDesigner.Blazor.Demo.Pages
+namespace FlowDesigner.Blazor.Components
 {
-
     public static class MouseEventArgsExtensions
     {
         public static Vector2 ToPosition(this MouseEventArgs args)

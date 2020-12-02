@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 using Aptacode.FlowDesigner.Core.ViewModels;
 using Microsoft.AspNetCore.Components;
 
-namespace FlowDesigner.Blazor.Demo.Pages
+namespace FlowDesigner.Blazor.Components
 {
-    public class SelectionBase : ComponentBase, IDisposable
+    public class ItemBase : ComponentBase, IDisposable
     {
-        [Parameter] public SelectionViewModel Selection { get; set; }
+        [Parameter] public ItemViewModel Item { get; set; }
 
         public float X { get; set; }
         public float Y { get; set; }
@@ -17,12 +17,12 @@ namespace FlowDesigner.Blazor.Demo.Pages
 
         public void Dispose()
         {
-            Selection.PropertyChanged -= Item_PropertyChanged;
+            Item.PropertyChanged -= Item_PropertyChanged;
         }
 
         protected override async Task OnInitializedAsync()
         {
-            Selection.PropertyChanged += Item_PropertyChanged;
+            Item.PropertyChanged += Item_PropertyChanged;
             Refresh();
 
             await base.OnInitializedAsync();
@@ -30,19 +30,17 @@ namespace FlowDesigner.Blazor.Demo.Pages
 
         private void Item_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName != "Position" && e.PropertyName != "Size")
+            if (e.PropertyName == "Position" || e.PropertyName == "Size")
             {
-                return;
+                Refresh();
+                InvokeAsync(StateHasChanged);
             }
-
-            Refresh();
-            InvokeAsync(StateHasChanged);
         }
 
         public void Refresh()
         {
-            var scaledPosition = Selection.Position * 10;
-            var scaledSize = Selection.Size * 10;
+            var scaledPosition = Item.Position * 10;
+            var scaledSize = Item.Size * 10;
 
             X = scaledPosition.X + 0.5f;
             Y = scaledPosition.Y + 0.5f;

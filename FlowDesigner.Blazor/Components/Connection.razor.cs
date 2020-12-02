@@ -6,7 +6,7 @@ using Aptacode.FlowDesigner.Core.ViewModels;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
-namespace FlowDesigner.Blazor.Demo.Pages
+namespace FlowDesigner.Blazor.Components
 {
     public class ConnectionBase : ComponentBase, IDisposable
     {
