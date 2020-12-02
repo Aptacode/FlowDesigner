@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using Microsoft.AspNetCore.Components.Web;
 
-namespace FlowDesigner.Blazor.Components
+namespace Aptacode.FlowDesigner.Blazor.Components
 {
     public static class MouseEventArgsExtensions
     {

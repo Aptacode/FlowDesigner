@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Aptacode.FlowDesigner.Core.ViewModels;
 using Microsoft.AspNetCore.Components;
 
-namespace FlowDesigner.Blazor.Components
+namespace Aptacode.FlowDesigner.Blazor.Components
 {
     public class SelectionBase : ComponentBase, IDisposable
     {

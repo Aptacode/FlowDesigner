@@ -1,9 +1,24 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
     <AssemblyName>Aptacode.FlowDesigner.Core</AssemblyName>
     <RootNamespace>Aptacode.FlowDesigner.Core</RootNamespace>
+    <Authors>Timothy Jones, Thomas Schmidt</Authors>
+    <Company>Aptacode</Company>
+    <Copyright>MIT</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Aptacode/FlowDesigner</PackageProjectUrl>
+    <PackageIconUrl />
+    <RepositoryUrl>https://github.com/Aptacode/FlowDesigner</RepositoryUrl>
+    <RepositoryType />
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <FileVersion>1.0.0</FileVersion>
+    <Nullable>enable</Nullable>
+    <Description>Create and modify Diagrams in realtime using Blazor</Description>
+    <PackageTags>Flow Chart Diagram Blazor Aptacode</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,7 +27,7 @@
 
   <ItemGroup>
     <PackageReference Include="Aptacode.CSharp.Common.Utilities" Version="1.0.0.30" />
-    <PackageReference Include="Aptacode.PathFinder" Version="1.0.4-CI-20201129-220922" />
+    <PackageReference Include="Aptacode.PathFinder" Version="1.0.4-CI-20201202-175125" />
   </ItemGroup>
 
 </Project>
