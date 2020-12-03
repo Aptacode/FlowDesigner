@@ -52,11 +52,8 @@ steps:
     arguments: '--configuration $(buildConfiguration)'
     packagesToPack: '$(project1)'
     nobuild: true
-    versioningScheme: 'byPrereleaseNumber'
-    majorVersion: '1'
-    minorVersion: '0'
-    patchVersion: '0'
-    
+    versioningScheme: 'byBuildNumber'
+
 - task: DotNetCoreCLI@2
   displayName: "Pack"
   inputs:
@@ -64,10 +61,8 @@ steps:
     arguments: '--configuration $(buildConfiguration)'
     packagesToPack: '$(project2)'
     nobuild: true
-    versioningScheme: 'byPrereleaseNumber'
-    majorVersion: '1'
-    minorVersion: '0'
-    patchVersion: '0'
+    versioningScheme: 'byBuildNumber'
+
 
 - task: NuGetCommand@2
   displayName: 'Push'
