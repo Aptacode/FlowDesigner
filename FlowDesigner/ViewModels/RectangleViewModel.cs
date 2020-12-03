@@ -14,6 +14,9 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         private int _z;
         private bool _isShown;
+        private float _borderThickness;
+        private float _margin;
+        private float _edgeThickness;
 
         protected RectangleViewModel(Vector2 position, Vector2 size)
         {
@@ -21,6 +24,9 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             Size = size;
             Z = 10;
             IsShown = false;
+            _borderThickness = 1;
+            _margin = 2;
+            _edgeThickness = 1;
         }
 
         public bool IsShown
@@ -53,6 +59,18 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             set => SetProperty(ref _borderColor, value);
         }
 
+        public float BorderThickness
+        {
+            get => _borderThickness;
+            set => SetProperty(ref _borderThickness, value);
+        }      
+        
+        public float Margin
+        {
+            get => _margin;
+            set => SetProperty(ref _margin, value);
+        }
+
         public Vector2 MidPoint => Position + Size / 2;
 
         public Vector2 TopLeft => Position;
@@ -77,6 +95,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                Position.Y < rectangle.BottomRight.Y &&
                BottomRight.Y > rectangle.Position.Y;
         }
+
         public bool CollidesWith(RectangleViewModel rectangle, Vector2 perimeter)
         {
             return Position.X < rectangle.TopRight.X + perimeter.X &&
