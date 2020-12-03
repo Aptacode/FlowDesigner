@@ -17,6 +17,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         private float _borderThickness;
         private float _margin;
         private float _edgeThickness;
+        private bool _collisionsAllowed;
 
         protected RectangleViewModel(Vector2 position, Vector2 size)
         {
@@ -24,9 +25,10 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             Size = size;
             Z = 10;
             IsShown = false;
-            _borderThickness = 1;
+            _borderThickness = 0.3f;
             _margin = 2;
             _edgeThickness = 1;
+            CollisionsAllowed = true;
         }
 
         public bool IsShown
@@ -34,7 +36,13 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             get => _isShown;
             set => SetProperty(ref _isShown, value);
         }
-        
+        public bool CollisionsAllowed
+        {
+            get => _collisionsAllowed;
+            set => SetProperty(ref _collisionsAllowed, value);
+        }
+
+
         public int Z
         {
             get => _z;
@@ -79,29 +87,23 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public Vector2 BottomLeft => Position + Size * new Vector2(0, 1);
 
         public bool CollidesWith(Vector2 position) =>
+            CollisionsAllowed && 
             position.X >= Position.X && position.X <= Position.X + Size.X &&
             position.Y >= Position.Y && position.Y <= Position.Y + Size.Y;
 
-        public bool CollidesWithEdge(Vector2 position) =>
+        public bool CollidesWithEdge(Vector2 position) => CollisionsAllowed &&
             CollidesWith(position) &&
-            (position.X <= Position.X + 1 || position.X >= Position.X + Size.X - 1)
-            &&
-            (position.Y <= Position.Y + 1 || position.Y >= Position.Y + Size.Y - 1);
+            (position.X < Position.X + _edgeThickness || position.X >= Position.X + Size.X - _edgeThickness)
+            ||
+            (position.Y < Position.Y + _edgeThickness || position.Y >= Position.Y + Size.Y - _edgeThickness);
 
         public bool CollidesWith(RectangleViewModel rectangle)
         {
-            return Position.X < rectangle.TopRight.X &&
-               TopRight.X > rectangle.TopLeft.X &&
-               Position.Y < rectangle.BottomRight.Y &&
-               BottomRight.Y > rectangle.Position.Y;
-        }
-
-        public bool CollidesWith(RectangleViewModel rectangle, Vector2 perimeter)
-        {
-            return Position.X < rectangle.TopRight.X + perimeter.X &&
-               TopRight.X > rectangle.TopLeft.X - perimeter.X &&
-               Position.Y < rectangle.BottomRight.Y + perimeter.Y &&
-               BottomRight.Y > rectangle.Position.Y - perimeter.Y;
+            return CollisionsAllowed &&
+                Position.X < rectangle.TopRight.X + Margin * 2&&
+               TopRight.X > rectangle.TopLeft.X - Margin * 2 &&
+               Position.Y < rectangle.BottomRight.Y + Margin * 2 &&
+               BottomRight.Y > rectangle.Position.Y - Margin * 2;
         }
     }
 }

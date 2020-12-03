@@ -8,6 +8,7 @@ using System.Text;
 using Aptacode.CSharp.Common.Utilities.Mvvm;
 using Aptacode.FlowDesigner.Core.Extensions;
 using Aptacode.PathFinder.Geometry.Neighbours;
+using Aptacode.PathFinder.Maps;
 using Aptacode.PathFinder.Utilities;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels
@@ -26,7 +27,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             Item1 = new ConnectedItem(item1, ConnectionMode.Out);
             Item2 = new ConnectedItem(item2, ConnectionMode.In);
             Z = 10;
-
+            Thickness = 3;
             Designer = designer;
 
             Item1.PropertyChanged += Item1_PropertyChanged;
@@ -39,6 +40,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public ConnectedItem Item1 { get; set; }
         public ConnectedItem Item2 { get; set; }
         public DesignerViewModel Designer { get; set; }
+        public float Thickness { get; set; }
 
         public string Path => _path;
         public IEnumerable<Vector2> ConnectionPath { get; private set; }
@@ -53,6 +55,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public void Redraw()
         {
+            var path = new StringBuilder();
+
             try
             {       
                 var mapBuilder = new MapBuilder();
@@ -65,11 +69,15 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 mapBuilder.SetStart(Item1.GetOffset());
                 mapBuilder.SetEnd(Item2.GetOffset());
                 mapBuilder.SetDimensions(Designer.Width, Designer.Height);
-                var map = mapBuilder.Build();
+                var mapResult = mapBuilder.Build();
+                if(!mapResult.Success)
+                {
+                    return;
+                }
+
                 var pathFinder =
-                    new PathFinder.Algorithm.PathFinder(map, DefaultNeighbourFinder.Straight(0.5f));
+                    new PathFinder.Algorithm.PathFinder(mapResult.Map, DefaultNeighbourFinder.Straight(0.5f));
                 ConnectionPath = pathFinder.FindPath();
-                var path = new StringBuilder();
 
                 path.Add(Item2.AnchorPoint);
                 foreach (var point in ConnectionPath)
@@ -78,11 +86,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 }
 
                 path.Add(Item1.AnchorPoint);
-                SetProperty(ref _path, path.ToString());
             }
             catch(Exception ex) {
                 Console.WriteLine(ex.ToString());
             }
+
+            SetProperty(ref _path, path.ToString());
         }
 
         public Color BorderColor

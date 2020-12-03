@@ -18,10 +18,4 @@
     <ProjectReference Include="..\FlowDesigner\FlowDesigner.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="Pages\Item - Copy - Copy.razor.cs">
-      <DependentUpon>Item - Copy.razor.cs</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
 </Project>

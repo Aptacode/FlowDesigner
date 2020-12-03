@@ -12,6 +12,7 @@ namespace Aptacode.FlowDesigner.Blazor.Components
     {
         [Parameter]
         public DesignerViewModel Designer { get; set; }
+        public string Cursor { get; set; }
 
         protected ElementReference diagram;  // set by the @ref attribute
 
@@ -29,9 +30,29 @@ namespace Aptacode.FlowDesigner.Blazor.Components
         protected override async Task OnInitializedAsync()
         {
             Designer.RedrawConnections();
-
+            Designer.PropertyChanged += Designer_PropertyChanged;
             await base.OnInitializedAsync();
         }
+
+        private void Designer_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if(e.PropertyName == nameof(Designer.MovingItem) || e.PropertyName == nameof(Designer.ResizingItem))
+            {
+                if (Designer.MovingItem)
+                {
+                    Cursor = "grab";
+                }else if (Designer.ResizingItem)
+                {
+                    Cursor = "move";
+                }
+                else
+                {
+                    Cursor = "auto";
+                }
+                StateHasChanged();
+            }
+        }
+
         private Vector2 _position;
         private Vector2 _lastPositionUpdate;
         public void MouseDown(MouseEventArgs e)

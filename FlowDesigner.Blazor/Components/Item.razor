@@ -3,7 +3,7 @@
 
 <g id="@(Item.Id.ToString())">
 
-    <rect x="@X" y="@Y" width="@Width" height="@Height" fill="white" stroke="@(Item.BorderColor.ToKnownColor())" stroke-width="3" />
+    <rect x="@X" y="@Y" width="@Width" height="@Height" fill="white" stroke="@(Item.BorderColor.ToKnownColor())" stroke-width="@(Item.BorderThickness * Constants.Scale)" />
 
     <text x="@(X + Width / 2)" y="@(Y + Height /2)" dominant-baseline="middle" text-anchor="middle" style="-moz-user-select: none; -ms-user-select: none; -webkit-user-select: none; pointer-events: none; user-select: none;"
         fill="black">

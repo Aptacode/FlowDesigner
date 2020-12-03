@@ -13,9 +13,9 @@
     <RepositoryUrl>https://github.com/Aptacode/FlowDesigner</RepositoryUrl>
     <RepositoryType />
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.1</Version>
-    <AssemblyVersion>1.0.1</AssemblyVersion>
-    <FileVersion>1.0.1</FileVersion>
+    <Version>1.0.2</Version>
+    <AssemblyVersion>1.0.2</AssemblyVersion>
+    <FileVersion>1.0.2</FileVersion>
     <Nullable>enable</Nullable>
     <Description>Create and modify Diagrams in realtime using Blazor</Description>
     <PackageTags>Flow Chart Diagram Blazor Aptacode</PackageTags>
