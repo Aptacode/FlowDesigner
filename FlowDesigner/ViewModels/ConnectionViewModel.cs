@@ -72,7 +72,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 var mapResult = mapBuilder.Build();
                 if(!mapResult.Success)
                 {
-                    return;
+                    throw new Exception(mapResult.Message);
                 }
 
                 var pathFinder =
