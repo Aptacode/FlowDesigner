@@ -52,7 +52,7 @@ steps:
     arguments: '--configuration $(buildConfiguration)'
     packagesToPack: '$(project1)'
     nobuild: true
-    versioningScheme: 'byBuildNumber'
+    versioningScheme: 'off'
 
 - task: DotNetCoreCLI@2
   displayName: "Pack"
@@ -61,7 +61,7 @@ steps:
     arguments: '--configuration $(buildConfiguration)'
     packagesToPack: '$(project2)'
     nobuild: true
-    versioningScheme: 'byBuildNumber'
+    versioningScheme: 'off'
 
 
 - task: NuGetCommand@2
