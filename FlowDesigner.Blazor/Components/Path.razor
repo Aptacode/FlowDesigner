@@ -1,3 +1,4 @@
 ﻿@inherits PathBase
-
-<polyline points="@Path.Path" style="fill:none;stroke:@(Path.BorderColor.ToKnownColor());stroke-width:@(Path.Thickness * Constants.Scale)" />
+<g id="@(Path.Id.ToString())">
+    <polyline points="@Path.Path" style="fill:none;stroke:@(Path.BorderColor.ToKnownColor());stroke-width:@(Path.Thickness * Constants.Scale)" />
+</g>

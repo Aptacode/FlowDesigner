@@ -16,10 +16,10 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
     }
     public class DesignerViewModel : BindableBase
     {
-
         private readonly List<ConnectionViewModel> _connections = new List<ConnectionViewModel>();
 
         private readonly List<ItemViewModel> _items = new List<ItemViewModel>();
+        private readonly List<PointViewModel> _points = new List<PointViewModel>();
         private ConnectedItem? _connectedItem { get; set; }
 
         private Vector2 LastMousePosition { get; set; }
@@ -38,7 +38,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             get => _movingItem;
             set => SetProperty(ref _movingItem, value);
         }
-        public string? KeyPressed;
 
         public DesignerViewModel(int width, int height)
         {
@@ -50,6 +49,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public SelectionViewModel Selection { get; set; }
 
         public IEnumerable<ItemViewModel> Items => _items.OrderBy(i => i.Z);
+        public IEnumerable<PointViewModel> Points => _points.OrderBy(i => i.Z);
         public IEnumerable<ConnectionViewModel> Connections => _connections.OrderBy(i => i.Z);
 
         public int Width { get; set; }
@@ -83,15 +83,42 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 OnPropertyChanged(nameof(Connections));
             });
 
+        private DelegateCommand<Vector2>? _addPoint;
+
+        public DelegateCommand<Vector2> AddPoint => _addPoint ??=
+            new DelegateCommand<Vector2>(position =>
+            {
+                var newItem = new PointViewModel(Guid.NewGuid(), position);
+                _points.Add(newItem);
+                OnPropertyChanged(nameof(Points));
+            });
+
         public void BringToFront(ItemViewModel item)
         {
             item.Z = Items.Max(i => i.Z) + 1;
         }
 
+        #region Keyboard
+        public string? KeyPressed;
+        public bool ControlPressed => KeyPressed == "Control";
+        public bool IPressed => string.Equals(KeyPressed, "i", StringComparison.OrdinalIgnoreCase);
+        public bool PPressed => string.Equals(KeyPressed, "p", StringComparison.OrdinalIgnoreCase);
+        public bool NothingPressed => string.IsNullOrEmpty(KeyPressed);
+
         public void KeyDown(string key)
         {
             KeyPressed = key;
         }
+        
+        public void KeyUp(string key)
+        {
+            KeyPressed = null;
+            ReleaseItem();
+        }
+
+        #endregion
+
+        #region Layering 
 
         public void SendToBack(ItemViewModel item)
         {
@@ -105,12 +132,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             }
 
             item.Z = min - 1;
-        }
-
-        public void KeyUp(string key)
-        {
-            KeyPressed = null;
-            ReleaseItem();
         }
 
         public void BringToFront(ConnectionViewModel connection)
@@ -132,9 +153,13 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             connection.Z = min - 1;
         }
 
+
+        #endregion
+
+
         private DelegateCommand<ItemViewModel>? _deleteItem;
 
-        public DelegateCommand<ItemViewModel> DeleteItem => _deleteItem ??= new DelegateCommand<ItemViewModel>(item =>
+        public DelegateCommand<ItemViewModel> DeletpeItem => _deleteItem ??= new DelegateCommand<ItemViewModel>(item =>
         {
             foreach (var connection in _connections.Where(c => c.IsConnectedTo(item)).ToList())
             {
@@ -227,11 +252,25 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public void MouseDown(Vector2 position)
         {
             MouseDownPosition = position;
+
+            //Interact with Points
+            if (PPressed)
+            {
+                var selectedPoint = Points.FirstOrDefault(p => p.Position == position);
+                if (!_points.Remove(selectedPoint))
+                {
+                    AddPoint.Execute(position);
+                }
+                return;
+            }
+
+            //Interact with Connections
             if (SelectedConnection == null)
             {
                 ClickConnection(position);
             }
 
+            //Interact with Items
             if (SelectedConnection == null)
             {
                 ClickItem(position);
@@ -264,14 +303,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             }
         }
 
-        private Vector2 _lastDrawPoint = Vector2.Zero;
-
         private void ClickItem(Vector2 position)
         {
             var selectedItem = Items.FirstOrDefault(item => item.CollidesWith(position));
 
             //If no item was selected
-            if(selectedItem == default && string.IsNullOrEmpty(KeyPressed))
+            if(selectedItem == default && NothingPressed)
             {
                 ClearSelectedItems();
                 Selection.IsShown = true;
@@ -330,7 +367,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             else if (!SelectedItems.Contains(selectedItem))
             {
                 SelectedItems.Add(selectedItem);
-                if (string.IsNullOrEmpty(KeyPressed))
+                if (NothingPressed)
                 {
                     LastMousePosition = position;
                     MovingItem = true;
@@ -601,11 +638,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 Selection.IsShown = false;
 
                 SelectedItems.AddRange(Items.Where(i => i.CollidesWith(Selection)));
+
                 UpdateSelectedItems();
                 return;
             }
 
-            if (!string.IsNullOrEmpty(KeyPressed))
+            if (ControlPressed)
             {
                 return;
             }

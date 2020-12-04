@@ -75,8 +75,9 @@ namespace Aptacode.FlowDesigner.Blazor.Components
                 {
                     Cursor = "auto";
                 }
-                StateHasChanged();
             }
+
+            StateHasChanged();
         }
 
         private Vector2 _position;

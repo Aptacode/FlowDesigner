@@ -11,7 +11,8 @@
          @onmousemove="MouseMove"
          @onmousedown="MouseDown"
          @onmouseup="MouseUp"
-         @onmouseout="MouseOut">
+         @onmouseout="MouseOut"
+         >
         <defs>
             <pattern id="tenthGrid" width="@Constants.Scale" height="@Constants.Scale" patternUnits="userSpaceOnUse">
                 <path d="M @Constants.Scale 0 L 0 0 0 @Constants.Scale" fill="none" stroke="silver" stroke-width="1" />
@@ -23,6 +24,11 @@
         </defs>
         <rect width="100%" height="100%" fill="url(#grid)" />
         <Selection Selection="@(Designer.Selection)" />
+
+        @foreach (var point in Designer.Points)
+        {
+            <Point Point="point" />
+        }
 
         @foreach (var connection in Designer.Connections)
         {
