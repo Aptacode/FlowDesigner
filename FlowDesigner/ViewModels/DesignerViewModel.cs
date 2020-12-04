@@ -353,6 +353,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 cancellationToken.Cancel();
                 return;
             }
+            selectedItem.Position = newPosition;
+
 
             var collidingItems = unselectedItems.Where(i => i.CollidesWith(selectedItem)).ToList();
             movingItems.AddRange(collidingItems);
@@ -362,9 +364,9 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 MoveItem(collidingItem, delta, movingItems, cancellationToken);
             }
 
-            if (!cancellationToken.IsCancellationRequested)
+            if (cancellationToken.IsCancellationRequested)
             {
-                selectedItem.Position = newPosition;
+                selectedItem.Position -= delta;
             }
         }
 
