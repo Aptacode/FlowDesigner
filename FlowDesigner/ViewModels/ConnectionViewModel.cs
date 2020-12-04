@@ -15,7 +15,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 {
     public class ConnectionViewModel : BindableBase
     {
-        private string _path;
         private int _z;
         private Color _borderColor = Color.Black;
 
@@ -26,36 +25,24 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             Label = label;
             Item1 = new ConnectedItem(item1, ConnectionMode.Out);
             Item2 = new ConnectedItem(item2, ConnectionMode.In);
+            Path = new PathViewModel();
             Z = 10;
             Thickness = 3;
             Designer = designer;
-
-            Item1.PropertyChanged += Item1_PropertyChanged;
-            Item2.PropertyChanged += Item1_PropertyChanged;
         }
 
         public Guid Id { get; set; }
         public string Label { get; set; }
 
+        public PathViewModel Path { get; set; }
         public ConnectedItem Item1 { get; set; }
         public ConnectedItem Item2 { get; set; }
         public DesignerViewModel Designer { get; set; }
         public float Thickness { get; set; }
 
-        public string Path => _path;
-        public IEnumerable<Vector2> ConnectionPath { get; private set; }
-
-        private void Item1_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            //if (e.PropertyName == nameof(ConnectedItem.AnchorPoint))
-            //{
-            //    Redraw();
-            //}
-        }
-
         public void Redraw()
         {
-            var path = new StringBuilder();
+            Path.ClearPoints();
 
             try
             {       
@@ -74,24 +61,19 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 {
                     throw new Exception(mapResult.Message);
                 }
-
                 var pathFinder =
                     new PathFinder.Algorithm.PathFinder(mapResult.Map, DefaultNeighbourFinder.Straight(0.5f));
-                ConnectionPath = pathFinder.FindPath();
 
-                path.Add(Item2.AnchorPoint);
-                foreach (var point in ConnectionPath)
-                {
-                    path.Add(point);
-                }
+                var points = new List<Vector2>();
+                points.Add(Item2.AnchorPoint);
+                points.AddRange(pathFinder.FindPath());
+                points.Add(Item1.AnchorPoint);
 
-                path.Add(Item1.AnchorPoint);
+                Path.AddPoints(points);
             }
             catch(Exception ex) {
                 Console.WriteLine(ex.ToString());
             }
-
-            SetProperty(ref _path, path.ToString());
         }
 
         public Color BorderColor

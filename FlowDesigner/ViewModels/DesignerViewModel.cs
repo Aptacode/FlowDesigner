@@ -382,8 +382,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 foreach (var connection in Connections)
                 {
                     //If the item is moving or is connected to a moving item
-                    if (movingItems.Any(i => connection.IsConnectedTo(i)) ||
-                        connection.ConnectionPath.Any(p => movingItems.Any(c => c.CollidesWith(p))))
+                    if (movingItems.Any(i => connection.IsConnectedTo(i) || connection.Path.CollidesWith(i)))
                     {
                         connection.Redraw();
                     }
