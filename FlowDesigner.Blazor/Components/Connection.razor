@@ -2,7 +2,7 @@
 
 
 <g id="@(Connection.Id.ToString())">
-    <polyline points="@Connection.Path" style="fill:none;stroke:@(Connection.BorderColor.ToKnownColor());stroke-width:@Connection.Thickness" />
+    <Path Path="@Connection.Path"/>
     <circle cx="@(Connection.Item1.AnchorPoint.X * Constants.Scale)" cy="@(Connection.Item1.AnchorPoint.Y * Constants.Scale)" r="@(Connection.Item1.ConnectionPointSize *Constants.Scale)" stroke="@(Connection.BorderColor.ToKnownColor())" stroke-width="@Connection.Thickness" fill="white" />
     <circle cx="@(Connection.Item2.AnchorPoint.X * Constants.Scale)" cy="@(Connection.Item2.AnchorPoint.Y * Constants.Scale)" r="@(Connection.Item2.ConnectionPointSize *Constants.Scale)" stroke="@(Connection.BorderColor.ToKnownColor())" stroke-width="@Connection.Thickness" fill="white" />
 </g>
