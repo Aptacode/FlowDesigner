@@ -441,7 +441,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             var selectedItem = SelectedItems.FirstOrDefault();
 
             var delta = position - LastMousePosition;
-
+            var originalPosition = selectedItem.Position;
+            var originalSize = selectedItem.Size;
             var newPosition = selectedItem.Position;
             var newSize = selectedItem.Size;
             switch (ResizingItem)
@@ -477,11 +478,18 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     break;
             }
 
-            if (newSize.X>= 2 && newSize.Y >= 2)
+            if (newSize.X >= 2 && newSize.Y >= 2)
             {
                 selectedItem.Position = newPosition;
                 selectedItem.Size = newSize;
             }
+
+            if(Items.Count(i => i.CollidesWith(selectedItem)) > 1)
+            {
+                selectedItem.Position = originalPosition;
+                selectedItem.Size = originalSize;
+            }
+
             LastMousePosition = position;
 
         }
