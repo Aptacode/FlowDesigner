@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
+using System.Threading;
 using Aptacode.CSharp.Common.Utilities.Extensions;
 using Aptacode.CSharp.Common.Utilities.Mvvm;
 
@@ -326,16 +327,28 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             UpdateSelectedItems();
         }
 
-        private void MoveItem(ItemViewModel selectedItem, Vector2 delta, HashSet<ItemViewModel> movingItems)
+        private void MoveItem(ItemViewModel selectedItem, Vector2 delta, HashSet<ItemViewModel> movingItems, CancellationTokenSource cancellationToken)
         {
             var unselectedItems = Items.Except(movingItems);
-            selectedItem.Position += delta;
+            var newPosition = selectedItem.Position + delta;
+
+            if (newPosition.X < 0 || newPosition.Y < 0 || newPosition.X + selectedItem.Size.X >= this.Width || newPosition.Y + selectedItem.Size.Y >= this.Height)
+            {
+                cancellationToken.Cancel();
+                return;
+            }
+
             var collidingItems = unselectedItems.Where(i => i.CollidesWith(selectedItem)).ToList();
             movingItems.AddRange(collidingItems);
 
             foreach (var collidingItem in collidingItems)
             {
-                MoveItem(collidingItem, delta, movingItems);
+                MoveItem(collidingItem, delta, movingItems, cancellationToken);
+            }
+
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                selectedItem.Position = newPosition;
             }
         }
 
@@ -374,9 +387,15 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
                 LastMousePosition = position;
 
+                var cancellationTokenSource = new CancellationTokenSource();
                 foreach (var item in SelectedItems)
                 {
-                    MoveItem(item, delta, movingItems);
+                    MoveItem(item, delta, movingItems, cancellationTokenSource);
+                }
+
+                if (cancellationTokenSource.IsCancellationRequested)
+                {
+                    return;
                 }
 
                 foreach (var connection in Connections)
