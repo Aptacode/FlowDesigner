@@ -40,10 +40,26 @@ namespace Aptacode.FlowDesigner.Blazor.Components
             {
                 if (Designer.MovingItem)
                 {
-                    Cursor = "grab";
-                }else if (Designer.ResizingItem)
-                {
                     Cursor = "move";
+                }else if (Designer.ResizingItem != ResizeDirection.None)
+                {
+                    switch (Designer.ResizingItem)
+                    {
+                        case ResizeDirection.N:
+                            Cursor = "n-resize";
+
+                            break;
+                        case ResizeDirection.S:
+                            Cursor = "s-resize";
+                            break;
+                        case ResizeDirection.E:
+                            Cursor = "e-resize";
+
+                            break;
+                        case ResizeDirection.W:
+                            Cursor = "w-resize";
+                            break;
+                    }
                 }
                 else
                 {

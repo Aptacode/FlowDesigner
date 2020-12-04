@@ -22,7 +22,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             Item.PropertyChanged += Item_PropertyChanged;
             Mode = mode;
             ConnectionPointSize = 0.5f;
-            UpdateAnchorPointDelta(new Vector2(Item.TopRight.X, Item.MidPoint.Y));
+            UpdateAnchorPointDelta(new Vector2(Item.TopRight.X, (float)Math.Floor(Item.MidPoint.Y)));
         }
 
         public ItemViewModel Item { get; set; }
@@ -66,7 +66,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             if(mousePosition.Y <= Item.TopLeft.Y && mousePosition.X >= Item.TopLeft.X && mousePosition.X <= Item.TopRight.X) 
             {
                 tempAnchorPoint = GetIntersection(Item.TopLeft, Item.TopRight, Item.MidPoint, mousePosition);
-            }else if(mousePosition.X >= Item.TopRight.X && mousePosition.Y >= Item.TopRight.Y && mousePosition.Y <= Item.BottomRight.Y)
+            }
+            else if(mousePosition.X >= Item.TopRight.X && mousePosition.Y >= Item.TopRight.Y && mousePosition.Y <= Item.BottomRight.Y)
             {
                 tempAnchorPoint = GetIntersection(Item.TopRight, Item.BottomRight, Item.MidPoint, mousePosition);
 
@@ -74,7 +75,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             else if(mousePosition.Y >= Item.BottomRight.Y && mousePosition.X >= Item.TopLeft.X && mousePosition.X <= Item.TopRight.X)
             {
                 tempAnchorPoint = GetIntersection(Item.BottomRight, Item.BottomLeft, Item.MidPoint, mousePosition);
-            }else if(mousePosition.X <= Item.TopLeft.X && mousePosition.Y >= Item.TopRight.Y && mousePosition.Y <= Item.BottomRight.Y)
+            }
+            else if(mousePosition.X <= Item.TopLeft.X && mousePosition.Y >= Item.TopRight.Y && mousePosition.Y <= Item.BottomRight.Y)
             {
                 tempAnchorPoint = GetIntersection(Item.BottomLeft, Item.TopLeft, Item.MidPoint, mousePosition);
             }

@@ -9,6 +9,10 @@ using Aptacode.CSharp.Common.Utilities.Mvvm;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels
 {
+    public enum ResizeDirection
+    {
+        None, N, NE, NW, S, SE, SW, E, W
+    }
     public class DesignerViewModel : BindableBase
     {
 
@@ -21,12 +25,13 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         private Vector2 MouseDownPosition { get; set; }
 
         private bool _movingItem;
-        private bool _resizingItem;
-        public bool ResizingItem
+        private ResizeDirection _resizingItem;
+        public ResizeDirection ResizingItem
         {
             get => _resizingItem;
             set => SetProperty(ref _resizingItem, value);
         }
+
         public bool MovingItem
         {
             get => _movingItem;
@@ -39,6 +44,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             Width = width;
             Height = height;
             Selection = new SelectionViewModel(Vector2.Zero, Vector2.Zero);
+            ResizingItem = ResizeDirection.None;
         }
         public SelectionViewModel Selection { get; set; }
 
@@ -275,8 +281,28 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 ClearSelectedItems();
                 SelectedItems.Add(selectedItem);
 
-                LastMousePosition = position - (selectedItem.Position + selectedItem.Size);
-                ResizingItem = true;
+                LastMousePosition = position;
+                if (LastMousePosition.X == selectedItem.TopLeft.X)
+                {
+                    ResizingItem = ResizeDirection.W;
+                }
+                else if(LastMousePosition.X == selectedItem.TopRight.X)
+                {
+                    ResizingItem = ResizeDirection.E;
+                }
+                else if(LastMousePosition.Y == selectedItem.TopLeft.Y)
+                {
+                    ResizingItem = ResizeDirection.N;
+
+                }
+                else if(LastMousePosition.Y == selectedItem.BottomLeft.Y)
+                {
+                    ResizingItem = ResizeDirection.S;
+                }
+                else
+                {
+                    ResizingItem = ResizeDirection.None;
+                }
             }
 
             //If the item was not yet selected
@@ -364,16 +390,52 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 }
 
             }
-            else if (ResizingItem)
+            else if (ResizingItem != ResizeDirection.None)
             {
-               // SelectedItems.Size = newPosition - SelectedItems.Position;
+
+                ResizeItem(position);
             }
+        }
+
+        private void ResizeItem(Vector2 position)
+        {
+            var selectedItem = SelectedItems.FirstOrDefault();
+
+            var delta = position - LastMousePosition;
+
+            var newPosition = selectedItem.Position;
+            var newSize = selectedItem.Size;
+            switch (ResizingItem)
+            {
+                case ResizeDirection.N:
+                    newPosition += delta * new Vector2(0, 1);
+                    newSize += delta * new Vector2(0, -1);
+                    break;
+                case ResizeDirection.S:
+                    newSize += delta * new Vector2(0, 1);
+                    break;
+                case ResizeDirection.E:
+                    newSize += delta * new Vector2(1, 0);
+                    break;
+                case ResizeDirection.W:
+                    newPosition += delta * new Vector2(1, 0);
+                    newSize += delta * new Vector2(-1, 0);
+                    break;
+            }
+
+            if (newSize.X>= 2 && newSize.Y >= 2)
+            {
+                selectedItem.Position = newPosition;
+                selectedItem.Size = newSize;
+            }
+            LastMousePosition = position;
+
         }
 
         private void ReleaseItem()
         {
             MovingItem = false;
-            ResizingItem = false;
+            ResizingItem = ResizeDirection.None;
 
             if (Selection.IsShown)
             {
