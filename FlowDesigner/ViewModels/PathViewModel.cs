@@ -42,6 +42,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             get => _isShown;
             set => SetProperty(ref _isShown, value);
         }
+
         public bool CollisionsAllowed
         {
             get => _collisionsAllowed;
@@ -93,6 +94,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public void ClearPoints()
         {
             _points.Clear();
+            Redraw();
+        }
+
+        public void Translate(Vector2 delta)
+        {
+            _points = _points.ConvertAll(p => p + delta);
             Redraw();
         }
 
