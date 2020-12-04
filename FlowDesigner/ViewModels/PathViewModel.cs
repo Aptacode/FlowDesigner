@@ -19,16 +19,18 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         private bool _isShown;
         private float _thickness;
         private float _margin;
+        private Guid _id;
         private bool _collisionsAllowed;
         private string _path;
 
-        public PathViewModel() : this(new Vector2[0])
+        public PathViewModel() : this(Guid.NewGuid(), new Vector2[0])
         {
 
         }
 
-        public PathViewModel(IEnumerable<Vector2> points)
+        public PathViewModel(Guid id, IEnumerable<Vector2> points)
         {
+            Id = id;
             Z = 10;
             IsShown = false;
             _thickness = 0.3f;
@@ -56,6 +58,11 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             set => SetProperty(ref _z, value);
         }
 
+        public Guid Id
+        {
+            get => _id;
+            set => SetProperty(ref _id, value);
+        }
 
         public Color BorderColor
         {

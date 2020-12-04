@@ -1,0 +1,5 @@
+﻿@inherits PointBase
+
+<g id="@(Point.Id.ToString())">
+    <circle cx="@(Point.Position.X * Constants.Scale)" cy="@(Point.Position.Y * Constants.Scale)" r="3" stroke="@(Point.BorderColor.ToKnownColor())" stroke-width="1" fill="gray" />
+</g>
