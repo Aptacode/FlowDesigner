@@ -153,6 +153,10 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 var newConnection =
                     new ConnectionViewModel(Guid.NewGuid(), "New Connection", this, tuple.item1, tuple.item2);
                 _connections.Add(newConnection);
+
+                tuple.item1.Connections.Add(newConnection);
+                tuple.item2.Connections.Add(newConnection);
+             
                 OnPropertyChanged(nameof(Connections));
             });
 
@@ -489,6 +493,99 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 selectedItem.Position = originalPosition;
                 selectedItem.Size = originalSize;
             }
+
+            if(selectedItem.Size.X < originalSize.X || selectedItem.Size.Y < originalSize.Y)
+            {
+                foreach(var connection in selectedItem.Connections)
+                {
+                    var s = connection.Item1.Item == selectedItem ? connection.Item1 : connection.Item2;
+                    s.UpdateAnchorPointDelta(position);
+
+                    switch (ResizingItem)
+                    {
+                        case ResizeDirection.NW:
+                            if (s.AnchorPoint.X > selectedItem.TopRight.X)
+                            {
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.TopRight.X - 1, selectedItem.TopRight.Y));
+                            }
+                            if (s.AnchorPoint.Y < selectedItem.TopRight.Y)
+                            {
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.TopRight.X, selectedItem.TopRight.Y + 1));
+                            }
+                            break;
+                        case ResizeDirection.NE:
+                            if (s.AnchorPoint.X < selectedItem.TopLeft.X)
+                            {
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.TopLeft.X + 1, selectedItem.TopLeft.Y));
+                            }
+                            if (s.AnchorPoint.Y < selectedItem.TopLeft.Y)
+                            {
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.TopLeft.X, selectedItem.TopRight.Y + 1));
+                            }
+                            break;
+                        case ResizeDirection.SE:
+                            if (s.AnchorPoint.X > selectedItem.BottomRight.X)
+                            {
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.BottomRight.X - 1, selectedItem.BottomRight.Y));
+                            }
+                            if (s.AnchorPoint.Y > selectedItem.BottomRight.Y)
+                            {
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.BottomRight.X, selectedItem.BottomRight.Y - 1));
+                            }
+                            break;
+                        case ResizeDirection.SW:
+                            if (s.AnchorPoint.X < selectedItem.BottomLeft.X)
+                            {
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.BottomLeft.X + 1, selectedItem.BottomLeft.Y));
+                            }
+                            if (s.AnchorPoint.Y > selectedItem.BottomLeft.Y)
+                            {
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.BottomLeft.X, selectedItem.BottomLeft.Y - 1));
+                            }
+                            break;
+                        case ResizeDirection.N:
+                            if (s.AnchorPoint.X == selectedItem.TopLeft.X && s.AnchorPoint.Y < selectedItem.TopLeft.Y)
+                            {
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.TopLeft.X, selectedItem.TopLeft.Y + 1));
+                            }
+                            if (s.AnchorPoint.X == selectedItem.TopRight.X && s.AnchorPoint.Y < selectedItem.TopRight.Y)
+                            {
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.TopRight.X, selectedItem.TopRight.Y + 1));
+                            }
+                            break;
+                        case ResizeDirection.S:
+                            if (s.AnchorPoint.X == selectedItem.BottomLeft.X && s.AnchorPoint.Y > selectedItem.BottomLeft.Y)
+                            {
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.BottomLeft.X, selectedItem.BottomLeft.Y - 1));
+                            }
+                            if (s.AnchorPoint.X == selectedItem.BottomRight.X && s.AnchorPoint.Y > selectedItem.BottomRight.Y)
+                            {
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.BottomRight.X, selectedItem.BottomRight.Y - 1));
+                            }
+                            break;
+                        case ResizeDirection.E:
+                            if (s.AnchorPoint.Y == selectedItem.TopRight.Y && s.AnchorPoint.X > selectedItem.TopRight.X)
+                            {
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.TopRight.X - 1, selectedItem.TopRight.Y));
+                            }
+                            if (s.AnchorPoint.Y == selectedItem.BottomRight.Y && s.AnchorPoint.X > selectedItem.BottomRight.X)
+                            {
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.BottomRight.X - 1, selectedItem.BottomRight.Y));
+                            }
+                            break;
+                        case ResizeDirection.W:
+                            if (s.AnchorPoint.Y == selectedItem.TopLeft.Y && s.AnchorPoint.X < selectedItem.TopLeft.X)
+                            {
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.TopLeft.X + 1, selectedItem.TopLeft.Y));
+                            }
+                            if (s.AnchorPoint.Y == selectedItem.BottomLeft.Y && s.AnchorPoint.X < selectedItem.BottomLeft.X)
+                            {
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.BottomLeft.X + 1, selectedItem.BottomLeft.Y));
+                            }
+                            break;
+                    }
+                }
+            }    
 
             LastMousePosition = position;
 

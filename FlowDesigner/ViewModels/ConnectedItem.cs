@@ -70,7 +70,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             else if(mousePosition.X >= Item.TopRight.X && mousePosition.Y >= Item.TopRight.Y && mousePosition.Y <= Item.BottomRight.Y)
             {
                 tempAnchorPoint = GetIntersection(Item.TopRight, Item.BottomRight, Item.MidPoint, mousePosition);
-
             }
             else if(mousePosition.Y >= Item.BottomRight.Y && mousePosition.X >= Item.TopLeft.X && mousePosition.X <= Item.TopRight.X)
             {
