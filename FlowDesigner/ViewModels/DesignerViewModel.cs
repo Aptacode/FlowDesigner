@@ -282,7 +282,23 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 SelectedItems.Add(selectedItem);
 
                 LastMousePosition = position;
-                if (LastMousePosition.X == selectedItem.TopLeft.X)
+                if (LastMousePosition == selectedItem.TopLeft)
+                {
+                    ResizingItem = ResizeDirection.NW;
+                }                
+                else if (LastMousePosition == selectedItem.TopRight)
+                {
+                    ResizingItem = ResizeDirection.NE;
+                }                
+                else if (LastMousePosition == selectedItem.BottomLeft)
+                {
+                    ResizingItem = ResizeDirection.SW;
+                }                
+                else if (LastMousePosition == selectedItem.BottomRight)
+                {
+                    ResizingItem = ResizeDirection.SE;
+                }                
+                else if (LastMousePosition.X == selectedItem.TopLeft.X)
                 {
                     ResizingItem = ResizeDirection.W;
                 }
@@ -407,6 +423,21 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             var newSize = selectedItem.Size;
             switch (ResizingItem)
             {
+                case ResizeDirection.NW:
+                    newPosition += delta;
+                    newSize += delta * new Vector2(-1, -1);
+                    break;
+                case ResizeDirection.NE:
+                    newPosition += delta * new Vector2(0, 1);
+                    newSize += delta * new Vector2(1, -1);
+                    break;
+                case ResizeDirection.SE:
+                    newSize += delta;
+                    break;
+                case ResizeDirection.SW:
+                    newPosition += delta * new Vector2(1, 0);
+                    newSize += delta * new Vector2(-1, 1);
+                    break;
                 case ResizeDirection.N:
                     newPosition += delta * new Vector2(0, 1);
                     newSize += delta * new Vector2(0, -1);
