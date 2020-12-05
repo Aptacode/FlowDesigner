@@ -44,8 +44,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     mapBuilder.AddObstacle(item.Position - Vector2.One, item.Size + (Vector2.One * 2));
                 }
 
-                mapBuilder.SetStart(Point1.GetOffset());
-                mapBuilder.SetEnd(Point2.GetOffset());
+                mapBuilder.SetStart(Point1.GetOffset(Point1.Item.Margin));
+                mapBuilder.SetEnd(Point2.GetOffset(Point2.Item.Margin));
                 mapBuilder.SetDimensions(Designer.Width, Designer.Height);
                 var mapResult = mapBuilder.Build();
                 if (!mapResult.Success)
@@ -57,9 +57,9 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     new PathFinder.Algorithm.PathFinder(mapResult.Map, DefaultNeighbourFinder.Straight(0.5f));
 
                 var points = new List<Vector2>();
-                points.Add(Point2.AnchorPoint);
+                points.Add(Point2.GetOffset(Point2.ConnectionPointSize));
                 points.AddRange(pathFinder.FindPath());
-                points.Add(Point1.AnchorPoint);
+                points.Add(Point1.GetOffset(Point2.ConnectionPointSize));
 
                 Path.AddPoints(points);
             }

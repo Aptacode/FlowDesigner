@@ -11,8 +11,7 @@
          @onmousemove="MouseMove"
          @onmousedown="MouseDown"
          @onmouseup="MouseUp"
-         @onmouseout="MouseOut"
-         >
+         @onmouseout="MouseOut">
         <defs>
             <pattern id="tenthGrid" width="@Constants.Scale" height="@Constants.Scale" patternUnits="userSpaceOnUse">
                 <path d="M @Constants.Scale 0 L 0 0 0 @Constants.Scale" fill="none" stroke="silver" stroke-width="1" />
@@ -25,42 +24,24 @@
         <rect width="100%" height="100%" fill="url(#grid)" />
         <Selection Selection="@(Designer.Selection)" />
 
-        @foreach (var point in Designer.Points)
+        @foreach (var component in Designer.Components)
         {
-            <Point Point="point" @key="point.Id"/>
-        }
-
-        @foreach (var connection in Designer.Connections)
-        {
-            <Connection Connection="connection" @key="connection.Id"/>
-        }
-
-        @foreach (var item in Designer.Items)
-        {
-            <Item Item="item" @key="item.Id" />
+            switch (component)
+            {
+                case PointViewModel pointViewModel:
+                    <Point Point="pointViewModel" @key="pointViewModel.Id" />
+                    break;
+                case ConnectionViewModel connectionViewModel:
+                    <Connection Connection="connectionViewModel" @key="connectionViewModel.Id" />
+                    break;
+                case ConnectedComponentViewModel connectedComponentViewModel:
+                    <Item Item="connectedComponentViewModel" @key="connectedComponentViewModel.Id" />
+                    break;
+            }
         }
 
     </svg>
 
 </div>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th scope="col">#</th>
-            <th scope="col">First</th>
-            <th scope="col">Last</th>
-            <th scope="col">Handle</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Designer.Items)
-        {
-            <tr>
-                <td>
-                    @item.Label
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+
 

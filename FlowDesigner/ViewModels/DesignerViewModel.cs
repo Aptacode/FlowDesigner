@@ -14,10 +14,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 {
     public class DesignerViewModel : BindableBase
     {
-        private readonly List<ConnectionViewModel> _connections = new List<ConnectionViewModel>();
-
-        private readonly List<ConnectedComponentViewModel> _items = new List<ConnectedComponentViewModel>();
-        private readonly List<PointViewModel> _points = new List<PointViewModel>();
 
         private bool _movingItem;
         private ResizeDirection _resizingItem;
@@ -28,7 +24,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             Height = height;
             Selection = new SelectionViewModel(Guid.NewGuid(), Vector2.Zero, Vector2.Zero);
             ResizingItem = ResizeDirection.None;
-            Components = new List<BaseComponentViewModel>();
         }
 
         private ConnectionPointViewModel? _connectedItem { get; set; }
@@ -50,11 +45,13 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public SelectionViewModel Selection { get; set; }
 
-        public IEnumerable<ConnectedComponentViewModel> Items => _items.OrderBy(i => i.Z);
-        public IEnumerable<PointViewModel> Points => _points.OrderBy(i => i.Z);
-        public IEnumerable<ConnectionViewModel> Connections => _connections.OrderBy(i => i.Z);
+        public List<ConnectedComponentViewModel> Items { get; set; } = new List<ConnectedComponentViewModel>();
+        public List<PointViewModel> Points { get; set; } = new List<PointViewModel>();
+        public List<ConnectionViewModel> Connections { get; set; } = new List<ConnectionViewModel>();
+        public List<BaseComponentViewModel> Components { get; set; } = new List<BaseComponentViewModel>();
 
-        public List<BaseComponentViewModel> Components { get; set; }
+
+
 
 
         public int Width { get; set; }
@@ -62,7 +59,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public void RedrawConnections()
         {
-            foreach (var connection in _connections)
+            foreach (var connection in Connections)
             {
                 connection.Redraw();
             }
@@ -119,12 +116,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public void BringToFront(ConnectionViewModel connection)
         {
-            connection.Z = _connections.Max(i => i.Z) + 1;
+            connection.Z = Connections.Max(i => i.Z) + 1;
         }
 
         public void SendToBack(ConnectionViewModel connection)
         {
-            var min = _connections.Min(i => i.Z);
+            var min = Connections.Min(i => i.Z);
             if (min <= 1)
             {
                 foreach (var i in Items)
@@ -143,21 +140,24 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public ConnectedComponentViewModel AddItem(string name, Vector2 position, Vector2 size)
         {
             var newItem = new ConnectedComponentViewModel(Guid.NewGuid(), name, position, size);
-            _items.Add(newItem);
+            Items.Add(newItem);
+            Components.Add(newItem);
             OnPropertyChanged(nameof(Items));
             return newItem;
         }
 
         public void RemoveItem(ConnectedComponentViewModel item)
         {
-            _items.Remove(item);
+           Items.Remove(item);
+            Components.Remove(item);
             OnPropertyChanged(nameof(Items));
         }
 
         public PointViewModel AddPoint(Vector2 position)
         {
             var newItem = new PointViewModel(Guid.NewGuid(), position);
-            _points.Add(newItem);
+            Points.Add(newItem);
+            Components.Add(newItem);
             OnPropertyChanged(nameof(Points));
             return newItem;
         }
@@ -165,7 +165,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public void RemovePoint(Vector2 position)
         {
             var selectedPoint = Points.FirstOrDefault(p => p.Position == position);
-            _points.Remove(selectedPoint);
+            Points.Remove(selectedPoint);
+            Components.Remove(selectedPoint);
             OnPropertyChanged(nameof(Points));
         }
 
@@ -173,6 +174,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         {
             var newConnectionPoint = new ConnectionPointViewModel(Guid.NewGuid(), item);
             item.ConnectionPoints.Add(newConnectionPoint);
+            Components.Add(newConnectionPoint);
             OnPropertyChanged(nameof(Items));
             return newConnectionPoint;
         }
@@ -182,7 +184,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             connectionPoint.Item.ConnectionPoints.Remove(connectionPoint);
             foreach (var connection in connectionPoint.Connections.ToArray())
             {
-                _connections.Remove(connection);
+                Connections.Remove(connection);
+                Components.Remove(connection);
                 connection.Break();
             }
 
@@ -192,8 +195,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public ConnectionViewModel AddConnection(ConnectionPointViewModel point1, ConnectionPointViewModel point2)
         {
             var newConnection = new ConnectionViewModel(Guid.NewGuid(), this, point1, point2);
-            _connections.Add(newConnection);
-
+            Connections.Add(newConnection);
+            Components.Add(newConnection);
             OnPropertyChanged(nameof(Connections));
             return newConnection;
         }
@@ -202,7 +205,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public void RemoveConnection(ConnectionViewModel connection)
         {
             connection.Break();
-            _connections.Add(connection);
+            Connections.Remove(connection);
+            Components.Remove(connection);
             OnPropertyChanged(nameof(Connections));
         }
 
@@ -234,7 +238,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             }
 
             //Highlight any connections for a selected item
-            foreach (var connection in _connections.Where(connection => SelectedItems.Any(connection.IsConnectedTo)))
+            foreach (var connection in  Connections.Where(connection => SelectedItems.Any(connection.IsConnectedTo)))
             {
                 BringToFront(connection);
                 connection.BorderColor = Color.Green;
@@ -278,7 +282,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             if (PPressed)
             {
                 var selectedPoint = Points.FirstOrDefault(p => p.Position == position);
-                if (!_points.Remove(selectedPoint))
+                if (!Points.Remove(selectedPoint))
                 {
                     AddPoint(position);
                 }

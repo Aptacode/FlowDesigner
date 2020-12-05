@@ -146,46 +146,46 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             position.X <= AnchorPoint.X + ConnectionPointSize &&
             position.Y >= AnchorPoint.Y - ConnectionPointSize && position.Y <= AnchorPoint.Y + ConnectionPointSize;
 
-        public Vector2 GetOffset()
+        public Vector2 GetOffset(float offset)
         {
             if (AnchorPoint == Item.TopLeft)
             {
-                return AnchorPoint + new Vector2(-Item.Margin, -Item.Margin);
+                return AnchorPoint + new Vector2(-offset, -offset);
             }
 
             if (AnchorPoint == Item.TopRight)
             {
-                return AnchorPoint + new Vector2(Item.Margin, -Item.Margin);
+                return AnchorPoint + new Vector2(offset, -offset);
             }
 
             if (AnchorPoint == Item.BottomRight)
             {
-                return AnchorPoint + new Vector2(Item.Margin, Item.Margin);
+                return AnchorPoint + new Vector2(offset, offset);
             }
 
             if (AnchorPoint == Item.BottomLeft)
             {
-                return AnchorPoint + new Vector2(-Item.Margin, Item.Margin);
+                return AnchorPoint + new Vector2(-offset, offset);
             }
 
             if (Math.Abs(AnchorPoint.Y - Item.TopLeft.Y) < Constants.Tolerance)
             {
-                return AnchorPoint + new Vector2(0, -Item.Margin);
+                return AnchorPoint + new Vector2(0, -offset);
             }
 
             if (Math.Abs(AnchorPoint.Y - Item.BottomRight.Y) < Constants.Tolerance)
             {
-                return AnchorPoint + new Vector2(0, Item.Margin);
+                return AnchorPoint + new Vector2(0, offset);
             }
 
             if (Math.Abs(AnchorPoint.X - Item.TopLeft.X) < Constants.Tolerance)
             {
-                return AnchorPoint + new Vector2(-Item.Margin, 0);
+                return AnchorPoint + new Vector2(-offset, 0);
             }
 
             if (Math.Abs(AnchorPoint.X - Item.BottomRight.X) < Constants.Tolerance)
             {
-                return AnchorPoint + new Vector2(Item.Margin, 0);
+                return AnchorPoint + new Vector2(offset, 0);
             }
 
             return Vector2.Zero;
