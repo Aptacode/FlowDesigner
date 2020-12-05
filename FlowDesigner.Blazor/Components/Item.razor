@@ -2,11 +2,17 @@
 
 
 <g id="@(Item.Id.ToString())">
+    @foreach (var connectionPoint in Item.ConnectionPoints)
+    {
+        <circle cx="@(connectionPoint.AnchorPoint.X * Constants.Scale)" cy="@(connectionPoint.AnchorPoint.Y * Constants.Scale)" r="@(connectionPoint.ConnectionPointSize *Constants.Scale)" stroke="@(connectionPoint.BorderColor.ToKnownColor())" stroke-width="@(connectionPoint.BorderThickness * Constants.Scale)" fill="@(connectionPoint.FillColor.ToKnownColor())" />
+    }
 
     <rect x="@X" y="@Y" width="@Width" height="@Height" fill="white" stroke="@(Item.BorderColor.ToKnownColor())" stroke-width="@(Item.BorderThickness * Constants.Scale)" />
 
     <text x="@(X + Width / 2)" y="@(Y + Height /2)" dominant-baseline="middle" text-anchor="middle" style="-moz-user-select: none; -ms-user-select: none; -webkit-user-select: none; pointer-events: none; user-select: none;"
-        fill="black">
+          fill="black">
         @Item.Label
     </text>
+
+
 </g>

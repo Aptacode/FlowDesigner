@@ -1,32 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Numerics;
-using Aptacode.CSharp.Common.Utilities.Mvvm;
+using Aptacode.FlowDesigner.Core.ViewModels.Components;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels
 {
-
-    public class ConnectedItem : BindableBase
+    public class ConnectionPointViewModel : BaseComponentViewModel
     {
         private Vector2 _anchorPoint;
-
         private Vector2 _anchorPointDelta;
-
         private float _connectionPointSize;
 
-        public ConnectedItem(ItemViewModel item, ConnectionMode mode)
+        public ConnectionPointViewModel(Guid id, ConnectedComponentViewModel item) : base(id)
         {
             Item = item;
             Item.PropertyChanged += Item_PropertyChanged;
-            Mode = mode;
-            ConnectionPointSize = 0.5f;
-            UpdateAnchorPointDelta(new Vector2(Item.TopRight.X, (float)Math.Floor(Item.MidPoint.Y)));
+            ConnectionPointSize = 1.0f;
+            UpdateAnchorPointDelta(new Vector2(Item.TopRight.X, (float) Math.Floor(Item.MidPoint.Y)));
         }
 
-        public ItemViewModel Item { get; set; }
-        public ConnectionMode Mode { get; set; }
+        public List<ConnectionViewModel> Connections { get; set; } = new List<ConnectionViewModel>();
+
+        public ConnectedComponentViewModel Item { get; set; }
 
         public float ConnectionPointSize
         {
@@ -50,10 +46,10 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         {
             switch (e.PropertyName)
             {
-                case nameof(ItemViewModel.Position):
+                case nameof(ConnectedComponentViewModel.Position):
                     AnchorPoint = Item.MidPoint - AnchorPointDelta;
                     break;
-                case nameof(ItemViewModel.Size):
+                case nameof(ConnectedComponentViewModel.Size):
                     UpdateAnchorPointDelta(AnchorPoint - AnchorPointDelta);
                     break;
             }
@@ -63,27 +59,29 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         {
             var tempAnchorPoint = AnchorPoint;
 
-            if(mousePosition.Y <= Item.TopLeft.Y && mousePosition.X >= Item.TopLeft.X && mousePosition.X <= Item.TopRight.X) 
+            if (mousePosition.Y <= Item.TopLeft.Y && mousePosition.X >= Item.TopLeft.X &&
+                mousePosition.X <= Item.TopRight.X)
             {
                 tempAnchorPoint = GetIntersection(Item.TopLeft, Item.TopRight, Item.MidPoint, mousePosition);
             }
-            else if(mousePosition.X >= Item.TopRight.X && mousePosition.Y >= Item.TopRight.Y && mousePosition.Y <= Item.BottomRight.Y)
+            else if (mousePosition.X >= Item.TopRight.X && mousePosition.Y >= Item.TopRight.Y &&
+                     mousePosition.Y <= Item.BottomRight.Y)
             {
                 tempAnchorPoint = GetIntersection(Item.TopRight, Item.BottomRight, Item.MidPoint, mousePosition);
-
             }
-            else if(mousePosition.Y >= Item.BottomRight.Y && mousePosition.X >= Item.TopLeft.X && mousePosition.X <= Item.TopRight.X)
+            else if (mousePosition.Y >= Item.BottomRight.Y && mousePosition.X >= Item.TopLeft.X &&
+                     mousePosition.X <= Item.TopRight.X)
             {
                 tempAnchorPoint = GetIntersection(Item.BottomRight, Item.BottomLeft, Item.MidPoint, mousePosition);
             }
-            else if(mousePosition.X <= Item.TopLeft.X && mousePosition.Y >= Item.TopRight.Y && mousePosition.Y <= Item.BottomRight.Y)
+            else if (mousePosition.X <= Item.TopLeft.X && mousePosition.Y >= Item.TopRight.Y &&
+                     mousePosition.Y <= Item.BottomRight.Y)
             {
                 tempAnchorPoint = GetIntersection(Item.BottomLeft, Item.TopLeft, Item.MidPoint, mousePosition);
             }
 
             AnchorPointDelta = Item.MidPoint - tempAnchorPoint;
             AnchorPoint = tempAnchorPoint;
-     
         }
 
         public (float m, float c) ToLineEquation(Vector2 start, Vector2 end)
@@ -94,7 +92,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             }
 
             var m = (end.Y - start.Y) / (end.X - start.X);
-            var c = ((-m) * start.X) + start.Y;
+            var c = -m * start.X + start.Y;
             return (m, c);
         }
 
@@ -118,15 +116,18 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             {
                 xIntersect = minX + 1;
                 yIntersect = minY;
-            }else if (xIntersect >= maxX && yIntersect <= minY)
+            }
+            else if (xIntersect >= maxX && yIntersect <= minY)
             {
                 xIntersect = maxX;
                 yIntersect = minY + 1;
-            }else if (xIntersect >= maxX && yIntersect >= maxY)
+            }
+            else if (xIntersect >= maxX && yIntersect >= maxY)
             {
                 xIntersect = maxX - 1;
                 yIntersect = maxY;
-            }else if (xIntersect <= minX && yIntersect >= maxY)
+            }
+            else if (xIntersect <= minX && yIntersect >= maxY)
             {
                 xIntersect = minX;
                 yIntersect = maxY - 1;

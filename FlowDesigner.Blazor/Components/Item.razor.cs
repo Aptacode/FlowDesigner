@@ -3,13 +3,14 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using Aptacode.FlowDesigner.Core;
 using Aptacode.FlowDesigner.Core.ViewModels;
+using Aptacode.FlowDesigner.Core.ViewModels.Components;
 using Microsoft.AspNetCore.Components;
 
 namespace Aptacode.FlowDesigner.Blazor.Components
 {
     public class ItemBase : ComponentBase, IDisposable
     {
-        [Parameter] public ItemViewModel Item { get; set; }
+        [Parameter] public ConnectedComponentViewModel Item { get; set; }
 
         public float X { get; set; }
         public float Y { get; set; }

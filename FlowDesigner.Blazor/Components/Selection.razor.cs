@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using Aptacode.FlowDesigner.Core;
 using Aptacode.FlowDesigner.Core.ViewModels;
+using Aptacode.FlowDesigner.Core.ViewModels.Components;
 using Microsoft.AspNetCore.Components;
 
 namespace Aptacode.FlowDesigner.Blazor.Components

@@ -1,4 +1,4 @@
-﻿namespace Aptacode.FlowDesigner.Core.ViewModels
+﻿namespace Aptacode.FlowDesigner.Core.Enums
 {
     public enum ConnectionMode
     {

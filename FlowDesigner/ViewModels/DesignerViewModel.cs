@@ -7,26 +7,35 @@ using System.Numerics;
 using System.Threading;
 using Aptacode.CSharp.Common.Utilities.Extensions;
 using Aptacode.CSharp.Common.Utilities.Mvvm;
+using Aptacode.FlowDesigner.Core.Enums;
+using Aptacode.FlowDesigner.Core.ViewModels.Components;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels
 {
-    public enum ResizeDirection
-    {
-        None, N, NE, NW, S, SE, SW, E, W
-    }
     public class DesignerViewModel : BindableBase
     {
         private readonly List<ConnectionViewModel> _connections = new List<ConnectionViewModel>();
 
-        private readonly List<ItemViewModel> _items = new List<ItemViewModel>();
+        private readonly List<ConnectedComponentViewModel> _items = new List<ConnectedComponentViewModel>();
         private readonly List<PointViewModel> _points = new List<PointViewModel>();
-        private ConnectedItem? _connectedItem { get; set; }
+
+        private bool _movingItem;
+        private ResizeDirection _resizingItem;
+
+        public DesignerViewModel(int width, int height)
+        {
+            Width = width;
+            Height = height;
+            Selection = new SelectionViewModel(Guid.NewGuid(), Vector2.Zero, Vector2.Zero);
+            ResizingItem = ResizeDirection.None;
+            Components = new List<BaseComponentViewModel>();
+        }
+
+        private ConnectionPointViewModel? _connectedItem { get; set; }
 
         private Vector2 LastMousePosition { get; set; }
         private Vector2 MouseDownPosition { get; set; }
 
-        private bool _movingItem;
-        private ResizeDirection _resizingItem;
         public ResizeDirection ResizingItem
         {
             get => _resizingItem;
@@ -39,18 +48,14 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             set => SetProperty(ref _movingItem, value);
         }
 
-        public DesignerViewModel(int width, int height)
-        {
-            Width = width;
-            Height = height;
-            Selection = new SelectionViewModel(Vector2.Zero, Vector2.Zero);
-            ResizingItem = ResizeDirection.None;
-        }
         public SelectionViewModel Selection { get; set; }
 
-        public IEnumerable<ItemViewModel> Items => _items.OrderBy(i => i.Z);
+        public IEnumerable<ConnectedComponentViewModel> Items => _items.OrderBy(i => i.Z);
         public IEnumerable<PointViewModel> Points => _points.OrderBy(i => i.Z);
         public IEnumerable<ConnectionViewModel> Connections => _connections.OrderBy(i => i.Z);
+
+        public List<BaseComponentViewModel> Components { get; set; }
+
 
         public int Width { get; set; }
         public int Height { get; set; }
@@ -65,40 +70,13 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         #region Events
 
-        public event EventHandler<IEnumerable<ItemViewModel>> SelectedItemChanged;
+        public event EventHandler<IEnumerable<ConnectedComponentViewModel>> SelectedItemChanged;
         public event EventHandler<ConnectionViewModel> SelectedConnectionChanged;
 
         #endregion
 
-        #region Commands
-
-        private DelegateCommand<(string, Vector2, Vector2)>? _createItem;
-
-        public DelegateCommand<(string, Vector2, Vector2)> CreateItem => _createItem ??=
-            new DelegateCommand<(string, Vector2, Vector2)>(details =>
-            {
-                var (name, position, size) = details;
-                var newItem = new ItemViewModel(Guid.NewGuid(), name, position, size);
-                _items.Add(newItem);
-                OnPropertyChanged(nameof(Connections));
-            });
-
-        private DelegateCommand<Vector2>? _addPoint;
-
-        public DelegateCommand<Vector2> AddPoint => _addPoint ??=
-            new DelegateCommand<Vector2>(position =>
-            {
-                var newItem = new PointViewModel(Guid.NewGuid(), position);
-                _points.Add(newItem);
-                OnPropertyChanged(nameof(Points));
-            });
-
-        public void BringToFront(ItemViewModel item)
-        {
-            item.Z = Items.Max(i => i.Z) + 1;
-        }
-
         #region Keyboard
+
         public string? KeyPressed;
         public bool ControlPressed => KeyPressed == "Control";
         public bool IPressed => string.Equals(KeyPressed, "i", StringComparison.OrdinalIgnoreCase);
@@ -109,7 +87,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         {
             KeyPressed = key;
         }
-        
+
         public void KeyUp(string key)
         {
             KeyPressed = null;
@@ -118,9 +96,14 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         #endregion
 
-        #region Layering 
+        #region Layering
 
-        public void SendToBack(ItemViewModel item)
+        public void BringToFront(ConnectedComponentViewModel item)
+        {
+            item.Z = Items.Max(i => i.Z) + 1;
+        }
+
+        public void SendToBack(ConnectedComponentViewModel item)
         {
             var min = Items.Min(i => i.Z);
             if (min <= 1)
@@ -153,39 +136,80 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             connection.Z = min - 1;
         }
 
-
         #endregion
 
+        #region Commands
 
-        private DelegateCommand<ItemViewModel>? _deleteItem;
-
-        public DelegateCommand<ItemViewModel> DeletpeItem => _deleteItem ??= new DelegateCommand<ItemViewModel>(item =>
+        public ConnectedComponentViewModel AddItem(string name, Vector2 position, Vector2 size)
         {
-            foreach (var connection in _connections.Where(c => c.IsConnectedTo(item)).ToList())
-            {
-                _connections.Remove(connection);
-            }
+            var newItem = new ConnectedComponentViewModel(Guid.NewGuid(), name, position, size);
+            _items.Add(newItem);
+            OnPropertyChanged(nameof(Items));
+            return newItem;
+        }
 
+        public void RemoveItem(ConnectedComponentViewModel item)
+        {
             _items.Remove(item);
             OnPropertyChanged(nameof(Items));
-        });
+        }
 
-        private DelegateCommand<(ItemViewModel item1, ItemViewModel item2)>? _connect;
+        public PointViewModel AddPoint(Vector2 position)
+        {
+            var newItem = new PointViewModel(Guid.NewGuid(), position);
+            _points.Add(newItem);
+            OnPropertyChanged(nameof(Points));
+            return newItem;
+        }
 
-        public DelegateCommand<(ItemViewModel item1, ItemViewModel item2)> Connect => _connect ??=
-            new DelegateCommand<(ItemViewModel item1, ItemViewModel item2)>(tuple =>
+        public void RemovePoint(Vector2 position)
+        {
+            var selectedPoint = Points.FirstOrDefault(p => p.Position == position);
+            _points.Remove(selectedPoint);
+            OnPropertyChanged(nameof(Points));
+        }
+
+        public ConnectionPointViewModel AddConnectionPoint(ConnectedComponentViewModel item)
+        {
+            var newConnectionPoint = new ConnectionPointViewModel(Guid.NewGuid(), item);
+            item.ConnectionPoints.Add(newConnectionPoint);
+            OnPropertyChanged(nameof(Items));
+            return newConnectionPoint;
+        }
+
+        public void RemoveConnectionPoint(ConnectionPointViewModel connectionPoint)
+        {
+            connectionPoint.Item.ConnectionPoints.Remove(connectionPoint);
+            foreach (var connection in connectionPoint.Connections.ToArray())
             {
-                var newConnection =
-                    new ConnectionViewModel(Guid.NewGuid(), "New Connection", this, tuple.item1, tuple.item2);
-                _connections.Add(newConnection);
-                OnPropertyChanged(nameof(Connections));
-            });
+                _connections.Remove(connection);
+                connection.Break();
+            }
+
+            OnPropertyChanged(nameof(Items));
+        }
+
+        public ConnectionViewModel AddConnection(ConnectionPointViewModel point1, ConnectionPointViewModel point2)
+        {
+            var newConnection = new ConnectionViewModel(Guid.NewGuid(), this, point1, point2);
+            _connections.Add(newConnection);
+
+            OnPropertyChanged(nameof(Connections));
+            return newConnection;
+        }
+
+        public void RemoveConnection(ConnectionViewModel connection)
+        {
+            connection.Break();
+            _connections.Add(connection);
+            OnPropertyChanged(nameof(Connections));
+        }
 
         #endregion
 
         #region Mouse
 
-        public readonly List<ItemViewModel> SelectedItems = new List<ItemViewModel>();
+        public readonly List<ConnectedComponentViewModel> SelectedItems = new List<ConnectedComponentViewModel>();
 
         public void ClearSelectedItems()
         {
@@ -225,7 +249,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             get => _selectedConnection;
             set
             {
-
                 var prevSelectedItem = _selectedConnection;
 
                 SetProperty(ref _selectedConnection, value);
@@ -235,6 +258,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 {
                     prevSelectedItem.BorderColor = Color.Black;
                 }
+
                 if (_selectedConnection != null)
                 {
                     _selectedConnection.BorderColor = Color.Green;
@@ -255,8 +279,9 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 var selectedPoint = Points.FirstOrDefault(p => p.Position == position);
                 if (!_points.Remove(selectedPoint))
                 {
-                    AddPoint.Execute(position);
+                    AddPoint(position);
                 }
+
                 return;
             }
 
@@ -304,7 +329,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             var selectedItem = Items.FirstOrDefault(item => item.CollidesWith(position));
 
             //If no item was selected
-            if(selectedItem == default && NothingPressed)
+            if (selectedItem == default && NothingPressed)
             {
                 ClearSelectedItems();
                 Selection.IsShown = true;
@@ -312,7 +337,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 Selection.Size = Vector2.Zero;
                 return;
             }
-            
+
             //If the border of the item was selected -> resize the item
             if (selectedItem.CollidesWithEdge(position))
             {
@@ -323,33 +348,32 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 if (LastMousePosition == selectedItem.TopLeft)
                 {
                     ResizingItem = ResizeDirection.NW;
-                }                
+                }
                 else if (LastMousePosition == selectedItem.TopRight)
                 {
                     ResizingItem = ResizeDirection.NE;
-                }                
+                }
                 else if (LastMousePosition == selectedItem.BottomLeft)
                 {
                     ResizingItem = ResizeDirection.SW;
-                }                
+                }
                 else if (LastMousePosition == selectedItem.BottomRight)
                 {
                     ResizingItem = ResizeDirection.SE;
-                }                
+                }
                 else if (LastMousePosition.X == selectedItem.TopLeft.X)
                 {
                     ResizingItem = ResizeDirection.W;
                 }
-                else if(LastMousePosition.X == selectedItem.TopRight.X)
+                else if (LastMousePosition.X == selectedItem.TopRight.X)
                 {
                     ResizingItem = ResizeDirection.E;
                 }
-                else if(LastMousePosition.Y == selectedItem.TopLeft.Y)
+                else if (LastMousePosition.Y == selectedItem.TopLeft.Y)
                 {
                     ResizingItem = ResizeDirection.N;
-
                 }
-                else if(LastMousePosition.Y == selectedItem.BottomLeft.Y)
+                else if (LastMousePosition.Y == selectedItem.BottomLeft.Y)
                 {
                     ResizingItem = ResizeDirection.S;
                 }
@@ -380,20 +404,24 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             UpdateSelectedItems();
         }
 
-        private void MoveItem(ItemViewModel selectedItem, Vector2 delta, HashSet<ItemViewModel> movingItems, CancellationTokenSource cancellationToken)
+        private void MoveItem(ConnectedComponentViewModel selectedItem, Vector2 delta,
+            HashSet<ConnectedComponentViewModel> movingItems, CancellationTokenSource cancellationToken)
         {
             var unselectedItems = Items.Except(movingItems);
             var newPosition = selectedItem.Position + delta;
 
-            if (newPosition.X < 0 || newPosition.Y < 0 || newPosition.X + selectedItem.Size.X >= this.Width || newPosition.Y + selectedItem.Size.Y >= this.Height)
+            if (newPosition.X < 0 || newPosition.Y < 0 || newPosition.X + selectedItem.Size.X >= Width ||
+                newPosition.Y + selectedItem.Size.Y >= Height)
             {
                 cancellationToken.Cancel();
                 return;
             }
+
             selectedItem.Position = newPosition;
 
 
-            var collidingItems = unselectedItems.Where(i => i.CollidesWith(selectedItem)).ToList();
+            var collidingItems = unselectedItems
+                .Where(i => i.CollidesWith(selectedItem.PositionAndMargin, selectedItem.SizeAndMargin)).ToList();
             movingItems.AddRange(collidingItems);
 
             foreach (var collidingItem in collidingItems)
@@ -416,24 +444,11 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
                 if (position.X <= MouseDownPosition.X)
                 {
-                    if(position.Y <= MouseDownPosition.Y)
-                    {
-                        Selection.Position = position;
-                    }
-                    else
-                    {
-                        Selection.Position = new Vector2(position.X, MouseDownPosition.Y);
-                    }
-                }else
+                    Selection.Position = position.Y <= MouseDownPosition.Y ? position : new Vector2(position.X, MouseDownPosition.Y);
+                }
+                else
                 {
-                    if (position.Y <= MouseDownPosition.Y)
-                    {
-                        Selection.Position = new Vector2(MouseDownPosition.X, position.Y);
-                    }
-                    else
-                    {
-                        Selection.Position = MouseDownPosition;
-                    }
+                    Selection.Position = position.Y <= MouseDownPosition.Y ? new Vector2(MouseDownPosition.X, position.Y) : MouseDownPosition;
                 }
             }
             else if (MovingItem)
@@ -455,20 +470,22 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
                 foreach (var connection in Connections)
                 {
-                    if (movingItems.Contains(connection.Item1.Item) && movingItems.Contains(connection.Item2.Item)){
+                    if (movingItems.Contains(connection.Point1.Item) && movingItems.Contains(connection.Point2.Item))
+                    {
                         connection.Path.Translate(delta);
-                    }else if (movingItems.Any(i => connection.IsConnectedTo(i) || connection.Path.CollidesWith(i)))         
+                    }
+                    else if (movingItems.Any(i =>
+                            connection.IsConnectedTo(i) ||
+                            connection.Path.CollidesWith(i.PositionAndMargin, i.SizeAndMargin)))
                         //If the item is moving or is connected to a moving item
 
                     {
                         connection.Redraw();
                     }
                 }
-
             }
             else if (ResizingItem != ResizeDirection.None)
             {
-
                 ResizeItem(position);
             }
         }
@@ -521,14 +538,13 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 selectedItem.Size = newSize;
             }
 
-            if(Items.Count(i => i.CollidesWith(selectedItem)) > 1)
+            if (Items.Count(i => i.CollidesWith(selectedItem.PositionAndMargin, selectedItem.SizeAndMargin)) > 1)
             {
                 selectedItem.Position = originalPosition;
                 selectedItem.Size = originalSize;
             }
 
             LastMousePosition = position;
-
         }
 
         private void ReleaseItem()
@@ -540,7 +556,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             {
                 Selection.IsShown = false;
 
-                SelectedItems.AddRange(Items.Where(i => i.CollidesWith(Selection)));
+                SelectedItems.AddRange(Items.Where(i =>
+                    i.CollidesWith(Selection.PositionAndMargin, Selection.SizeAndMargin)));
 
                 UpdateSelectedItems();
                 return;
@@ -564,24 +581,24 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         {
             foreach (var connection in Connections)
             {
-                if (connection.Item1.CollidesWith(position))
+                if (connection.Point1.CollidesWith(position))
                 {
-                    _connectedItem = connection.Item1;
+                    _connectedItem = connection.Point1;
                     SelectedConnection = connection;
                     break;
                 }
 
-                if (!connection.Item2.CollidesWith(position))
+                if (!connection.Point2.CollidesWith(position))
                 {
                     continue;
                 }
 
-                _connectedItem = connection.Item2;
+                _connectedItem = connection.Point2;
                 SelectedConnection = connection;
                 break;
             }
 
-            if(SelectedConnection != null)
+            if (SelectedConnection != null)
             {
                 BringToFront(SelectedConnection);
             }

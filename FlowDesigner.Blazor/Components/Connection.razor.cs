@@ -20,8 +20,8 @@ namespace Aptacode.FlowDesigner.Blazor.Components
         protected override async Task OnInitializedAsync()
         {
             Connection.PropertyChanged += Item_PropertyChanged;
-            Connection.Item1.Item.PropertyChanged += Item_PropertyChanged;
-            Connection.Item2.Item.PropertyChanged += Item_PropertyChanged;
+            Connection.Point1.Item.PropertyChanged += Item_PropertyChanged;
+            Connection.Point2.Item.PropertyChanged += Item_PropertyChanged;
 
             await base.OnInitializedAsync();
         }
