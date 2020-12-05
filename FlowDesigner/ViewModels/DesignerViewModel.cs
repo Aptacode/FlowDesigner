@@ -77,6 +77,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public bool IPressed => string.Equals(KeyPressed, "i", StringComparison.OrdinalIgnoreCase);
         public bool CPressed => string.Equals(KeyPressed, "c", StringComparison.OrdinalIgnoreCase);
         public bool PPressed => string.Equals(KeyPressed, "p", StringComparison.OrdinalIgnoreCase);
+        public bool DPressed => string.Equals(KeyPressed, "d", StringComparison.OrdinalIgnoreCase);
         public bool NothingPressed => string.IsNullOrEmpty(KeyPressed);
 
         public void KeyDown(string key)
@@ -86,12 +87,16 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public void KeyUp(string key)
         {
+            if (ControlPressed)
+            {
+                KeyPressed = null;
+                ReleaseItem();
+            }
             KeyPressed = null;
-            ReleaseItem();
         }
 
-        #endregion        
-        
+        #endregion
+
         #region Layering
         public void BringToFront(BaseComponentViewModel component)
         {
@@ -148,9 +153,21 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public void RemoveItem(ConnectedComponentViewModel item)
         {
-           Items.Remove(item);
+            foreach(var connectionPoint in item.ConnectionPoints.ToArray())
+            {
+                foreach(var connection in connectionPoint.Connections.ToArray())
+                {
+                    connection.Break(); 
+                    Connections.Remove(connection);
+                    Components.Remove(connection);
+                }
+                Components.Remove(connectionPoint);
+            }
+            Items.Remove(item);
             Components.Remove(item);
+
             OnPropertyChanged(nameof(Items));
+            OnPropertyChanged(nameof(Connections));
         }
 
         public PointViewModel AddPoint(Vector2 position)
@@ -360,6 +377,18 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 Selection.IsShown = true;
                 Selection.Position = position;
                 Selection.Size = Vector2.Zero;
+                return;
+            }
+
+            if (selectedItem == null)
+            {
+                return;
+            }
+
+            if (DPressed)
+            {
+                RemoveItem(selectedItem);
+                KeyPressed = null;
                 return;
             }
 
@@ -681,11 +710,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         private void ClickConnection(Vector2 position)
         {
+            ConnectionPointViewModel? selectedConnection = null;
             foreach (var connection in Connections)
             {
                 if (connection.Point1.CollidesWith(position))
                 {
-                    SelectedConnectionPoint = connection.Point1;
+                    selectedConnection = connection.Point1;
                     break;
                 }
 
@@ -694,8 +724,22 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     continue;
                 }
 
-                SelectedConnectionPoint = connection.Point2;
+                selectedConnection = connection.Point2;
                 break;
+            }
+
+            if (selectedConnection == null)
+            {
+                return;
+            }
+
+            if (DPressed)
+            {
+                RemoveConnectionPoint(selectedConnection);
+            }
+            else
+            {
+                SelectedConnectionPoint = selectedConnection;
             }
         }
 
