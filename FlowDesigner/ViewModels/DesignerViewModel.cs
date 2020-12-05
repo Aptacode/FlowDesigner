@@ -8,6 +8,7 @@ using System.Threading;
 using Aptacode.CSharp.Common.Utilities.Extensions;
 using Aptacode.CSharp.Common.Utilities.Mvvm;
 using Aptacode.FlowDesigner.Core.Enums;
+using Aptacode.FlowDesigner.Core.Extensions;
 using Aptacode.FlowDesigner.Core.ViewModels.Components;
 using Aptacode.PathFinder.Geometry.Neighbours;
 using Aptacode.PathFinder.Maps;
@@ -61,45 +62,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 connection.Redraw();
             }
         }
-
-        #region PathFinding
-
-        public List<Vector2> GetPath(Vector2 startPoint, Vector2 endPoint)
-        {
-            var points = new List<Vector2>();
-
-            try
-            {
-                var mapBuilder = new MapBuilder();
-
-                foreach (var item in Items.ToList())
-                {
-                    mapBuilder.AddObstacle(item.Position - Vector2.One, item.Size + Vector2.One * 2);
-                }
-
-                mapBuilder.SetStart(startPoint);
-                mapBuilder.SetEnd(endPoint);
-                mapBuilder.SetDimensions(Width, Height);
-                var mapResult = mapBuilder.Build();
-                if (!mapResult.Success)
-                {
-                    throw new Exception(mapResult.Message);
-                }
-
-                var pathFinder =
-                    new PathFinder.Algorithm.PathFinder(mapResult.Map, DefaultNeighbourFinder.Straight(0.5f));
-
-                points.AddRange(pathFinder.FindPath());
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
-
-            return points;
-        }
-
-        #endregion
 
         #region Events
 
@@ -638,7 +600,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     Path.ClearPoints();
                     var startPoint = _selectedConnectionPoint.GetOffset(_selectedConnectionPoint.Item.Margin);
                     var endPoint = position;
-                    var path = GetPath(startPoint, endPoint);
+                    var path = this.GetPath(startPoint, endPoint);
                     Path.AddPoints(path);
                 }
             }

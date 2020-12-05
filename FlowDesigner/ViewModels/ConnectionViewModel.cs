@@ -2,6 +2,7 @@
 using System.Drawing;
 using Aptacode.CSharp.Common.Utilities.Mvvm;
 using Aptacode.FlowDesigner.Core.Enums;
+using Aptacode.FlowDesigner.Core.Extensions;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 {
