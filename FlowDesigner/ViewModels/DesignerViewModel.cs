@@ -17,9 +17,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 {
     public class DesignerViewModel : BindableBase
     {
-        private bool _movingItem;
-        private ResizeDirection _resizingItem;
-
         public DesignerViewModel(int width, int height)
         {
             Width = width;
@@ -28,22 +25,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             Path = new PathViewModel();
             ResizeDirection = ResizeDirection.None;
         }
-
-        private Vector2 LastMousePosition { get; set; }
-        private Vector2 MouseDownPosition { get; set; }
-
-        public ResizeDirection ResizeDirection
-        {
-            get => _resizingItem;
-            set => SetProperty(ref _resizingItem, value);
-        }
-
-        public bool MovingItem
-        {
-            get => _movingItem;
-            set => SetProperty(ref _movingItem, value);
-        }
-
+        #region Components
         public SelectionViewModel Selection { get; set; }
         public PathViewModel Path { get; set; }
 
@@ -51,17 +33,28 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public List<PointViewModel> Points { get; set; } = new List<PointViewModel>();
         public List<ConnectionViewModel> Connections { get; set; } = new List<ConnectionViewModel>();
         public List<BaseComponentViewModel> Components { get; set; } = new List<BaseComponentViewModel>();
+        #endregion
 
+        #region Properties
         public int Width { get; set; }
         public int Height { get; set; }
+        private Vector2 LastMousePosition { get; set; }
+        private Vector2 MouseDownPosition { get; set; }
 
-        public void RedrawConnections()
+        private ResizeDirection _resizingItem;
+        public ResizeDirection ResizeDirection
         {
-            foreach (var connection in Connections)
-            {
-                connection.Redraw();
-            }
+            get => _resizingItem;
+            set => SetProperty(ref _resizingItem, value);
         }
+
+        private bool _movingItem;
+        public bool MovingItem
+        {
+            get => _movingItem;
+            set => SetProperty(ref _movingItem, value);
+        }
+        #endregion
 
         #region Events
 
@@ -74,10 +67,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public string? KeyPressed;
         public bool ControlPressed => KeyPressed == "Control";
-        public bool IPressed => string.Equals(KeyPressed, "i", StringComparison.OrdinalIgnoreCase);
-        public bool CPressed => string.Equals(KeyPressed, "c", StringComparison.OrdinalIgnoreCase);
-        public bool PPressed => string.Equals(KeyPressed, "p", StringComparison.OrdinalIgnoreCase);
-        public bool DPressed => string.Equals(KeyPressed, "d", StringComparison.OrdinalIgnoreCase);
+        public bool IsPressed(string key) => string.Equals(KeyPressed, key, StringComparison.OrdinalIgnoreCase);
         public bool NothingPressed => string.IsNullOrEmpty(KeyPressed);
 
         public void KeyDown(string key)
@@ -309,7 +299,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             MouseDownPosition = position;
 
             //Interact with Points
-            if (PPressed)
+            if (IsPressed("p"))
             {
                 var selectedPoint = Points.FirstOrDefault(p => p.Position == position);
                 if (!Points.Remove(selectedPoint))
@@ -321,7 +311,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             }
 
             //Interact with Connections
-            if (_selectedConnectionPoint == null || CPressed)
+            if (_selectedConnectionPoint == null || IsPressed("c"))
             {
                 ClickConnection(position);
             }
@@ -406,7 +396,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 return;
             }
 
-            if (DPressed)
+            if (IsPressed("d"))
             {
                 RemoveItem(selectedItem);
                 KeyPressed = null;
@@ -571,7 +561,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 return;
             }
 
-            if (DPressed)
+            if (IsPressed("d"))
             {
                 RemoveConnectionPoint(selectedConnection);
             }
@@ -593,7 +583,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 return;
             }
 
-            if (CPressed)
+            if (IsPressed("c"))
             {
                 if (!Items.Any(i => i.CollidesWith(position)))
                 {
@@ -619,7 +609,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 return;
             }
 
-            if (CPressed)
+            if (IsPressed("c"))
             {
                 ConnectionPointViewModel? selectedConnectionPoint = null;
                 foreach (var connection in Connections)
@@ -664,6 +654,18 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             }
 
             _selectedConnectionPoint = null;
+        }
+
+        #endregion
+
+        #region Connections
+
+        public void RedrawConnections()
+        {
+            foreach (var connection in Connections)
+            {
+                connection.Redraw();
+            }
         }
 
         #endregion
