@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Aptacode.FlowDesigner.Core.Enums;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Numerics;
@@ -41,6 +42,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             set => SetProperty(ref _anchorPointDelta, value);
         }
 
+        public ResizeDirection AnchorPointFace { get; set; }
+
         private void Item_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             switch (e.PropertyName)
@@ -49,7 +52,35 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
                     AnchorPoint = Item.MidPoint - AnchorPointDelta;
                     break;
                 case nameof(ConnectedComponentViewModel.Size):
-                    UpdateAnchorPointDelta(AnchorPoint - AnchorPointDelta);
+                    var tempAnchorPoint = AnchorPoint;
+
+                    var clampedX = Math.Clamp(AnchorPoint.X, Item.Position.X + 1, Item.Position.X + Item.Size.X -1);
+                    var clampedY = Math.Clamp(AnchorPoint.Y, Item.Position.Y + 1, Item.Position.Y + Item.Size.Y -1);
+
+                    switch (AnchorPointFace)
+                    {
+                        case ResizeDirection.N:
+                            tempAnchorPoint = new Vector2(clampedX, Item.Position.Y);
+                            break;
+                        case ResizeDirection.E:
+                            tempAnchorPoint = new Vector2(Item.Position.X + Item.Size.X, clampedY);
+                            break;
+                        case ResizeDirection.S:
+                            tempAnchorPoint = new Vector2(clampedX, Item.Position.Y + Item.Size.Y);
+                            break;
+                        case ResizeDirection.W:
+                            tempAnchorPoint = new Vector2(Item.Position.X, clampedY);
+                            break;
+                    }
+
+                    AnchorPointDelta = Item.MidPoint - tempAnchorPoint;
+                    if(_anchorPoint != tempAnchorPoint)
+                    {
+                        _anchorPoint = tempAnchorPoint;
+                        Redraw();
+                        AnchorPoint = tempAnchorPoint;
+                    }
+
                     break;
             }
         }
@@ -62,27 +93,34 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
                 mousePosition.X <= Item.TopRight.X)
             {
                 tempAnchorPoint = GetIntersection(Item.TopLeft, Item.TopRight, Item.MidPoint, mousePosition);
+                AnchorPointFace = ResizeDirection.N;
             }
             else if (mousePosition.X >= Item.TopRight.X && mousePosition.Y >= Item.TopRight.Y &&
                      mousePosition.Y <= Item.BottomRight.Y)
             {
+                AnchorPointFace = ResizeDirection.E;
                 tempAnchorPoint = GetIntersection(Item.TopRight, Item.BottomRight, Item.MidPoint, mousePosition);
             }
             else if (mousePosition.Y >= Item.BottomRight.Y && mousePosition.X >= Item.TopLeft.X &&
                      mousePosition.X <= Item.TopRight.X)
             {
+                AnchorPointFace = ResizeDirection.S;
                 tempAnchorPoint = GetIntersection(Item.BottomRight, Item.BottomLeft, Item.MidPoint, mousePosition);
             }
             else if (mousePosition.X <= Item.TopLeft.X && mousePosition.Y >= Item.TopRight.Y &&
                      mousePosition.Y <= Item.BottomRight.Y)
             {
+                AnchorPointFace = ResizeDirection.W;
                 tempAnchorPoint = GetIntersection(Item.BottomLeft, Item.TopLeft, Item.MidPoint, mousePosition);
             }
 
             AnchorPointDelta = Item.MidPoint - tempAnchorPoint;
-            _anchorPoint = tempAnchorPoint;
-            Redraw();
-            AnchorPoint = tempAnchorPoint;
+            if (_anchorPoint != tempAnchorPoint)
+            {
+                _anchorPoint = tempAnchorPoint;
+                Redraw();
+                AnchorPoint = tempAnchorPoint;
+            }
         }
 
         public (float m, float c) ToLineEquation(Vector2 start, Vector2 end)

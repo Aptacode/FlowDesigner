@@ -117,5 +117,52 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
             return ResizeDirection.None;
         }
+
+        public virtual void Resize(DesignerViewModel designer, Vector2 delta, ResizeDirection direction)
+        {
+            var newPosition = Position;
+            var newSize = Size;
+            switch (direction)
+            {
+                case ResizeDirection.NW:
+                    newPosition += delta;
+                    newSize += delta * new Vector2(-1, -1);
+                    break;
+                case ResizeDirection.NE:
+                    newPosition += delta * new Vector2(0, 1);
+                    newSize += delta * new Vector2(1, -1);
+                    break;
+                case ResizeDirection.SE:
+                    newSize += delta;
+                    break;
+                case ResizeDirection.SW:
+                    newPosition += delta * new Vector2(1, 0);
+                    newSize += delta * new Vector2(-1, 1);
+                    break;
+                case ResizeDirection.N:
+                    newPosition += delta * new Vector2(0, 1);
+                    newSize += delta * new Vector2(0, -1);
+                    break;
+                case ResizeDirection.S:
+                    newSize += delta * new Vector2(0, 1);
+                    break;
+                case ResizeDirection.E:
+                    newSize += delta * new Vector2(1, 0);
+                    break;
+                case ResizeDirection.W:
+                    newPosition += delta * new Vector2(1, 0);
+                    newSize += delta * new Vector2(-1, 0);
+                    break;
+                case ResizeDirection.None:
+                default:
+                    break;
+            }
+
+            if (newSize.X >= 2 && newSize.Y >= 2 && designer.Items.Count(i => i.CollidesWith(PositionAndMargin, SizeAndMargin)) <= 1)
+            {
+                Position = newPosition;
+                Size = newSize;
+            }
+        }
     }
 }
