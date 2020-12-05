@@ -118,7 +118,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             return ResizeDirection.None;
         }
 
-        public virtual void Resize(DesignerViewModel designer, Vector2 delta, ResizeDirection direction)
+        public override void Resize(DesignerViewModel designer, Vector2 delta, ResizeDirection direction)
         {
             var newPosition = Position;
             var newSize = Size;
@@ -163,6 +163,11 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
                 Position = newPosition;
                 Size = newSize;
             }
+        }
+
+        public override void Move(DesignerViewModel designer, Vector2 delta)
+        {
+
         }
     }
 }

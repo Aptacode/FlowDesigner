@@ -9,9 +9,8 @@ using Aptacode.CSharp.Common.Utilities.Extensions;
 using Aptacode.CSharp.Common.Utilities.Mvvm;
 using Aptacode.FlowDesigner.Core.Enums;
 using Aptacode.FlowDesigner.Core.Extensions;
+using Aptacode.FlowDesigner.Core.Utilities;
 using Aptacode.FlowDesigner.Core.ViewModels.Components;
-using Aptacode.PathFinder.Geometry.Neighbours;
-using Aptacode.PathFinder.Maps;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels
 {
@@ -28,11 +27,15 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         #region Components
         public SelectionViewModel Selection { get; set; }
         public PathViewModel Path { get; set; }
+        public readonly List<ConnectedComponentViewModel> SelectedItems = new List<ConnectedComponentViewModel>();
 
         public List<ConnectedComponentViewModel> Items { get; set; } = new List<ConnectedComponentViewModel>();
         public List<PointViewModel> Points { get; set; } = new List<PointViewModel>();
+        public List<RectangleViewModel> Rectangles { get; set; } = new List<RectangleViewModel>();
+        public List<PathViewModel> Paths { get; set; } = new List<PathViewModel>();
         public List<ConnectionViewModel> Connections { get; set; } = new List<ConnectionViewModel>();
         public List<BaseComponentViewModel> Components { get; set; } = new List<BaseComponentViewModel>();
+
         #endregion
 
         #region Properties
@@ -88,158 +91,25 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         #endregion
 
-        #region Layering
 
-        public void BringToFront(BaseComponentViewModel component)
-        {
-            if (Components.Remove(component))
-            {
-                Components.Insert(0, component);
-            }
-        }
-
-        public void SendToBack(BaseComponentViewModel component)
-        {
-            if (Components.Remove(component))
-            {
-                Components.Add(component);
-            }
-        }
-
-        public void BringForward(BaseComponentViewModel component)
-        {
-            var index = Components.IndexOf(component);
-            if (index == 0)
-            {
-                return;
-            }
-
-            Components.RemoveAt(index);
-            Components.Insert(index - 1, component);
-        }
-
-        public void SendBackward(BaseComponentViewModel component)
-        {
-            var index = Components.IndexOf(component);
-            if (index == Components.Count - 1)
-            {
-                return;
-            }
-
-            Components.RemoveAt(index);
-            Components.Insert(index + 1, component);
-        }
-
-        #endregion
 
         #region Commands
 
-        public ConnectedComponentViewModel AddItem(string name, Vector2 position, Vector2 size)
+        public void Add(BaseComponentViewModel component)
         {
-            var newItem = new ConnectedComponentViewModel(Guid.NewGuid(), name, position, size);
-            Items.Add(newItem);
-            Components.Add(newItem);
-            OnPropertyChanged(nameof(Items));
-            return newItem;
+            Components.Add(component);
+            OnPropertyChanged(nameof(Components));
         }
 
-        public void RemoveItem(ConnectedComponentViewModel item)
+        public void Remove(BaseComponentViewModel component)
         {
-            foreach (var connectionPoint in item.ConnectionPoints.ToArray())
-            {
-                foreach (var connection in connectionPoint.Connections.ToArray())
-                {
-                    RemoveConnection(connection);
-                }
-
-                Components.Remove(connectionPoint);
-            }
-
-            Items.Remove(item);
-            Components.Remove(item);
-
-            OnPropertyChanged(nameof(Items));
-            OnPropertyChanged(nameof(Connections));
-        }
-
-        public PointViewModel AddPoint(Vector2 position)
-        {
-            var newItem = new PointViewModel(Guid.NewGuid(), position);
-            Points.Add(newItem);
-            Components.Add(newItem);
-            OnPropertyChanged(nameof(Points));
-            return newItem;
-        }
-
-        public void RemovePoint(Vector2 position)
-        {
-            var selectedPoint = Points.FirstOrDefault(p => p.Position == position);
-            Points.Remove(selectedPoint);
-            Components.Remove(selectedPoint);
-            OnPropertyChanged(nameof(Points));
-        }
-
-        public ConnectionPointViewModel AddConnectionPoint(ConnectedComponentViewModel item)
-        {
-            var newConnectionPoint = new ConnectionPointViewModel(Guid.NewGuid(), item);
-            item.ConnectionPoints.Add(newConnectionPoint);
-            Components.Add(newConnectionPoint);
-            OnPropertyChanged(nameof(Items));
-            return newConnectionPoint;
-        }
-
-        public void RemoveConnectionPoint(ConnectionPointViewModel connectionPoint)
-        {
-            connectionPoint.Item.ConnectionPoints.Remove(connectionPoint);
-            foreach (var connection in connectionPoint.Connections.ToArray())
-            {
-                RemoveConnection(connection);
-            }
-
-            OnPropertyChanged(nameof(Items));
-        }
-
-        public ConnectionViewModel AddConnection(ConnectionPointViewModel point1, ConnectionPointViewModel point2)
-        {
-            var newConnection = new ConnectionViewModel(this, point1, point2);
-            Connections.Add(newConnection);
-            point1.Connections.Add(newConnection);
-            point2.Connections.Add(newConnection);
-            Components.Add(newConnection.Path);
-
-            OnPropertyChanged(nameof(Connections));
-            return newConnection;
-        }
-
-
-        public void RemoveConnection(ConnectionViewModel connection)
-        {
-            connection.Break();
-            Connections.Remove(connection);
-            Components.Remove(connection.Path);
-
-            OnPropertyChanged(nameof(Connections));
-        }
-
-        public PathViewModel AddPath(PathViewModel path)
-        {
-            Components.Add(path);
-            OnPropertyChanged(nameof(Connections));
-            return path;
-        }
-
-
-        public void RemovePath(PathViewModel path)
-        {
-            Components.Remove(path);
-            OnPropertyChanged(nameof(Connections));
+            Components.Remove(component);
+            OnPropertyChanged(nameof(Components));
         }
 
         #endregion
 
         #region Mouse
-
-        public readonly List<ConnectedComponentViewModel> SelectedItems = new List<ConnectedComponentViewModel>();
 
         public void ClearSelectedItems()
         {
@@ -258,7 +128,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             //Highlight Selected Items
             foreach (var item in SelectedItems)
             {
-                BringToFront(item);
+                item.BringToFront(this);
                 item.BorderColor = Color.Green;
             }
 
@@ -284,7 +154,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     foreach (var connection in value.Connections)
                     {
                         connection.Select();
-                        BringToFront(connection.Path);
+                        connection.Path.BringToFront(this);
                     }
                 }
 
@@ -304,7 +174,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 var selectedPoint = Points.FirstOrDefault(p => p.Position == position);
                 if (!Points.Remove(selectedPoint))
                 {
-                    AddPoint(position);
+                    var newPoint = this.CreatePoint(position);
+                    newPoint.AddTo(this);
                 }
 
                 return;
@@ -398,7 +269,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
             if (IsPressed("d"))
             {
-                RemoveItem(selectedItem);
+                selectedItem.RemoveFrom(this);
                 KeyPressed = null;
                 return;
             }
@@ -433,40 +304,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             UpdateSelectedItems();
         }
 
-        private void MoveItem(ConnectedComponentViewModel selectedItem, Vector2 delta,
-            HashSet<ConnectedComponentViewModel> movingItems, CancellationTokenSource cancellationToken)
-        {
-            var unselectedItems = Items.Except(movingItems);
-            var newPosition = selectedItem.Position + delta;
-
-            if (newPosition.X < 0 || newPosition.Y < 0 || newPosition.X + selectedItem.Size.X >= Width ||
-                newPosition.Y + selectedItem.Size.Y >= Height)
-            {
-                cancellationToken.Cancel();
-                return;
-            }
-
-            selectedItem.Position = newPosition;
-
-
-            var collidingItems = unselectedItems
-                .Where(i => i.CollidesWith(selectedItem.PositionAndMargin, selectedItem.SizeAndMargin)).ToList();
-            movingItems.AddRange(collidingItems);
-
-            foreach (var collidingItem in collidingItems)
-            {
-                MoveItem(collidingItem, delta, movingItems, cancellationToken);
-            }
-
-            if (cancellationToken.IsCancellationRequested)
-            {
-                selectedItem.Position -= delta;
-            }
-        }
-
         private void MoveItem(Vector2 position)
         {
-            var movingItems = SelectedItems.ToHashSet();
             if (MovingItem)
             {
                 var delta = position - LastMousePosition;
@@ -474,9 +313,10 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 LastMousePosition = position;
 
                 var cancellationTokenSource = new CancellationTokenSource();
+                var movingItems = SelectedItems.OfType<BaseShapeViewModel>().ToList();
                 foreach (var item in SelectedItems)
                 {
-                    MoveItem(item, delta, movingItems, cancellationTokenSource);
+                    this.Move(item, delta, movingItems, cancellationTokenSource);
                 }
 
                 if (cancellationTokenSource.IsCancellationRequested)
@@ -491,8 +331,10 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                         connection.Path.Translate(delta);
                     }
                     else if (movingItems.Any(i =>
-                            connection.IsConnectedTo(i) ||
-                            connection.Path.CollidesWith(i.PositionAndMargin, i.SizeAndMargin)))
+                                connection.Path.CollidesWith(i.PositionAndMargin, i.SizeAndMargin) || 
+                            (
+                                i is ConnectedComponentViewModel connectedComponent &&
+                            connection.IsConnectedTo(connectedComponent))))
                         //If the item is moving or is connected to a moving item
 
                     {
@@ -563,7 +405,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
             if (IsPressed("d"))
             {
-                RemoveConnectionPoint(selectedConnection);
+                selectedConnection.RemoveFrom(this);
             }
             else
             {
@@ -634,14 +476,16 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     var collidingItem = Items.FirstOrDefault(c => c.CollidesWith(position));
                     if (collidingItem != null && collidingItem != _selectedConnectionPoint.Item)
                     {
-                        selectedConnectionPoint = AddConnectionPoint(collidingItem);
+
+                        selectedConnectionPoint = this.CreateConnectionPoint(collidingItem);
+                        selectedConnectionPoint.AddTo(this);
                         selectedConnectionPoint.UpdateAnchorPointDelta(_selectedConnectionPoint.AnchorPoint);
                     }
                 }
 
                 if (SelectedConnectionPoint != selectedConnectionPoint && selectedConnectionPoint != null)
                 {
-                    AddConnection(_selectedConnectionPoint, selectedConnectionPoint);
+                    _selectedConnectionPoint.Connect(this, selectedConnectionPoint);
                 }
 
                 Path.ClearPoints();

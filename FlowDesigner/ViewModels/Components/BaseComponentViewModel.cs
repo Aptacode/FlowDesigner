@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Drawing;
+using System.Numerics;
 using Aptacode.CSharp.Common.Utilities.Mvvm;
+using Aptacode.FlowDesigner.Core.Enums;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 {
@@ -43,5 +45,64 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             get => _borderThickness;
             set => SetProperty(ref _borderThickness, value);
         }
+
+
+        public virtual void AddTo(DesignerViewModel designer)
+        {
+            designer.Add(this);
+        }
+
+        public virtual void RemoveFrom(DesignerViewModel designer)
+        {
+            designer.Remove(this);
+        }
+
+        public abstract void Move(DesignerViewModel designer, Vector2 delta);
+        public abstract void Resize(DesignerViewModel designer, Vector2 delta, ResizeDirection direction);
+
+
+        #region Layering
+
+        public void BringToFront(DesignerViewModel designer)
+        {
+            if (designer.Components.Remove(this))
+            {
+                designer.Components.Insert(0, this);
+            }
+        }
+
+        public void SendToBack(DesignerViewModel designer)
+        {
+            if (designer.Components.Remove(this))
+            {
+                designer.Components.Add(this);
+            }
+        }
+
+        public void BringForward(DesignerViewModel designer)
+        {
+            var index = designer.Components.IndexOf(this);
+            if (index == 0)
+            {
+                return;
+            }
+
+            designer.Components.RemoveAt(index);
+            designer.Components.Insert(index - 1, this);
+        }
+
+        public void SendBackward(DesignerViewModel designer)
+        {
+            var index = designer.Components.IndexOf(this);
+            if (index == designer.Components.Count - 1)
+            {
+                return;
+            }
+
+            designer.Components.RemoveAt(index);
+            designer.Components.Insert(index + 1, this);
+        }
+
+        #endregion
     }
 }

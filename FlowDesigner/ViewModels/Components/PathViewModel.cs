@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using Aptacode.FlowDesigner.Core.Enums;
 using Aptacode.FlowDesigner.Core.Extensions;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels.Components
@@ -79,6 +80,28 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
                 p.X >= point.X && point.X <= point.X + shape.X &&
                 p.Y >= point.Y && point.Y <= point.Y + shape.Y
             );
+        }
+
+        public override void Move(DesignerViewModel designer, Vector2 delta)
+        {
+
+        }
+
+        public override void Resize(DesignerViewModel designer, Vector2 delta, ResizeDirection direction)
+        {
+
+        }
+
+        public override void AddTo(DesignerViewModel designer)
+        {
+            designer.Paths.Add(this);
+            base.AddTo(designer);
+        }
+
+        public override void RemoveFrom(DesignerViewModel designer)
+        {
+            designer.Paths.Remove(this);
+            base.RemoveFrom(designer);
         }
 
         #endregion

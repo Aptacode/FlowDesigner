@@ -9,5 +9,17 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         {
             CollisionsAllowed = false;
         }
+
+        public override void AddTo(DesignerViewModel designer)
+        {
+            designer.Points.Add(this);
+            base.AddTo(designer);
+        }
+
+        public override void RemoveFrom(DesignerViewModel designer)
+        {
+            designer.Points.Remove(this);
+            base.RemoveFrom(designer);
+        }
     }
 }

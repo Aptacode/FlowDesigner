@@ -10,5 +10,17 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             Margin = 0.0f;
             IsShown = false;
         }
+
+        public override void AddTo(DesignerViewModel designer)
+        {
+            designer.Selection = this;
+            base.AddTo(designer);
+        }
+
+        public override void RemoveFrom(DesignerViewModel designer)
+        {
+            designer.Selection = null;
+            base.RemoveFrom(designer);
+        }
     }
 }

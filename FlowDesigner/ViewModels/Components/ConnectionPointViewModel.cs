@@ -1,4 +1,5 @@
 ﻿using Aptacode.FlowDesigner.Core.Enums;
+using Aptacode.FlowDesigner.Core.Utilities;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -236,6 +237,55 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             {
                 connection.Redraw();
             }
+        }
+
+        public override void Move(DesignerViewModel designer, Vector2 delta)
+        {
+
+        }
+
+
+        public override void Resize(DesignerViewModel designer, Vector2 delta, ResizeDirection direction)
+        {
+            
+        }
+
+        public override void AddTo(DesignerViewModel designer)
+        {
+            foreach (var connection in Connections.ToArray())
+            {
+                if (!designer.Connections.Contains(connection))
+                {
+                    designer.Connections.Add(connection);
+                }
+            }
+            base.AddTo(designer);
+        }
+
+        public override void RemoveFrom(DesignerViewModel designer)
+        {
+            Item.ConnectionPoints.Remove(this);
+
+            foreach (var connection in Connections.ToArray())
+            {
+                connection.Break(designer);
+                designer.Connections.Remove(connection);
+            }
+
+            base.RemoveFrom(designer);
+        }
+
+        public ConnectionViewModel Connect(DesignerViewModel designer, ConnectionPointViewModel point2)
+        {
+            var newConnection = ComponentFactory.CreateConnection(designer, this, point2);
+            Connections.Add(newConnection);
+
+            designer.Connections.Add(newConnection);
+            newConnection.Path.AddTo(designer);
+
+            OnPropertyChanged(nameof(Connections));
+            newConnection.Redraw();
+            return newConnection;
         }
     }
 }
