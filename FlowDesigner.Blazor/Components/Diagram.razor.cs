@@ -37,14 +37,14 @@ namespace Aptacode.FlowDesigner.Blazor.Components
 
         private void Designer_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if(e.PropertyName == nameof(Designer.MovingItem) || e.PropertyName == nameof(Designer.ResizingItem))
+            if(e.PropertyName == nameof(Designer.MovingItem) || e.PropertyName == nameof(Designer.ResizeDirection))
             {
                 if (Designer.MovingItem)
                 {
                     Cursor = "move";
-                }else if (Designer.ResizingItem != ResizeDirection.None)
+                }else if (Designer.ResizeDirection != ResizeDirection.None)
                 {
-                    switch (Designer.ResizingItem)
+                    switch (Designer.ResizeDirection)
                     {
                         case ResizeDirection.N:
                             Cursor = "n-resize";

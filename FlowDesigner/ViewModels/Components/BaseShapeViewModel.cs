@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Aptacode.FlowDesigner.Core.Enums;
+using System;
 using System.Linq;
 using System.Numerics;
 
@@ -71,5 +72,46 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             TopRight.X > point.X - Margin * 2 &&
             Position.Y < point.Y + shape.Y + Margin * 2 &&
             BottomRight.Y > point.Y - Margin * 2;
+
+        public ResizeDirection GetCollidingEdge(Vector2 position)
+        {
+            if (position == TopLeft)
+            {
+                return ResizeDirection.NW;
+            }
+            else if (position == TopRight)
+            {
+                return ResizeDirection.NE;
+            }
+            else if (position == BottomLeft)
+            {
+                return ResizeDirection.SW;
+            }
+            else if (position == BottomRight)
+            {
+                return ResizeDirection.SE;
+            }
+            else if (Math.Abs(position.X - TopLeft.X) < Constants.Tolerance)
+            {
+                return ResizeDirection.W;
+            }
+            else if (Math.Abs(position.X - TopRight.X) < Constants.Tolerance)
+            {
+                return ResizeDirection.E;
+            }
+            else if (Math.Abs(position.Y - TopLeft.Y) < Constants.Tolerance)
+            {
+                return ResizeDirection.N;
+            }
+            else if (Math.Abs(position.Y - BottomLeft.Y) < Constants.Tolerance)
+            {
+                return ResizeDirection.S;
+            }
+            else
+            {
+                return ResizeDirection.None;
+            }
+        }
+         
     }
 }

@@ -26,13 +26,13 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             Height = height;
             Selection = new SelectionViewModel(Guid.NewGuid(), Vector2.Zero, Vector2.Zero);
             Path = new PathViewModel();
-            ResizingItem = ResizeDirection.None;
+            ResizeDirection = ResizeDirection.None;
         }
 
         private Vector2 LastMousePosition { get; set; }
         private Vector2 MouseDownPosition { get; set; }
 
-        public ResizeDirection ResizingItem
+        public ResizeDirection ResizeDirection
         {
             get => _resizingItem;
             set => SetProperty(ref _resizingItem, value);
@@ -393,48 +393,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             }
 
             //If the border of the item was selected -> resize the item
-            if (selectedItem.CollidesWithEdge(position))
+            ResizeDirection = selectedItem.GetCollidingEdge(position);
+            if (ResizeDirection != ResizeDirection.None)
             {
                 ClearSelectedItems();
                 SelectedItems.Add(selectedItem);
-
                 LastMousePosition = position;
-                if (LastMousePosition == selectedItem.TopLeft)
-                {
-                    ResizingItem = ResizeDirection.NW;
-                }
-                else if (LastMousePosition == selectedItem.TopRight)
-                {
-                    ResizingItem = ResizeDirection.NE;
-                }
-                else if (LastMousePosition == selectedItem.BottomLeft)
-                {
-                    ResizingItem = ResizeDirection.SW;
-                }
-                else if (LastMousePosition == selectedItem.BottomRight)
-                {
-                    ResizingItem = ResizeDirection.SE;
-                }
-                else if (Math.Abs(LastMousePosition.X - selectedItem.TopLeft.X) < Constants.Tolerance)
-                {
-                    ResizingItem = ResizeDirection.W;
-                }
-                else if (Math.Abs(LastMousePosition.X - selectedItem.TopRight.X) < Constants.Tolerance)
-                {
-                    ResizingItem = ResizeDirection.E;
-                }
-                else if (Math.Abs(LastMousePosition.Y - selectedItem.TopLeft.Y) < Constants.Tolerance)
-                {
-                    ResizingItem = ResizeDirection.N;
-                }
-                else if (Math.Abs(LastMousePosition.Y - selectedItem.BottomLeft.Y) < Constants.Tolerance)
-                {
-                    ResizingItem = ResizeDirection.S;
-                }
-                else
-                {
-                    ResizingItem = ResizeDirection.None;
-                }
             }
 
             //If the item was not yet selected
@@ -525,7 +489,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     }
                 }
             }
-            else if (ResizingItem != ResizeDirection.None)
+            else if (ResizeDirection != ResizeDirection.None)
             {
                 ResizeItem(position);
             }
@@ -533,6 +497,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         private void ResizeItem(Vector2 position)
         {
+            //Move to BaseShapeViewModel
             var selectedItem = SelectedItems.FirstOrDefault();
 
             var delta = position - LastMousePosition;
@@ -540,7 +505,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             var originalSize = selectedItem.Size;
             var newPosition = selectedItem.Position;
             var newSize = selectedItem.Size;
-            switch (ResizingItem)
+            switch (ResizeDirection)
             {
                 case ResizeDirection.NW:
                     newPosition += delta;
@@ -596,7 +561,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     var s = connection;
                     connection.UpdateAnchorPointDelta(position);
 
-                    switch (ResizingItem)
+                    switch (ResizeDirection)
                     {
                         case ResizeDirection.NW:
                             if (s.AnchorPoint.X > selectedItem.TopRight.X)
@@ -692,7 +657,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         private void ReleaseItem()
         {
             MovingItem = false;
-            ResizingItem = ResizeDirection.None;
+            ResizeDirection = ResizeDirection.None;
 
             if (ControlPressed)
             {
