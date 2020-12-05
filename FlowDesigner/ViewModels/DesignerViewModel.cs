@@ -9,6 +9,8 @@ using Aptacode.CSharp.Common.Utilities.Extensions;
 using Aptacode.CSharp.Common.Utilities.Mvvm;
 using Aptacode.FlowDesigner.Core.Enums;
 using Aptacode.FlowDesigner.Core.ViewModels.Components;
+using Aptacode.PathFinder.Geometry.Neighbours;
+using Aptacode.PathFinder.Maps;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels
 {
@@ -23,6 +25,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             Width = width;
             Height = height;
             Selection = new SelectionViewModel(Guid.NewGuid(), Vector2.Zero, Vector2.Zero);
+            Path = new PathViewModel();
             ResizingItem = ResizeDirection.None;
         }
 
@@ -42,6 +45,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         }
 
         public SelectionViewModel Selection { get; set; }
+        public PathViewModel Path { get; set; }
 
         public List<ConnectedComponentViewModel> Items { get; set; } = new List<ConnectedComponentViewModel>();
         public List<PointViewModel> Points { get; set; } = new List<PointViewModel>();
@@ -71,6 +75,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public string? KeyPressed;
         public bool ControlPressed => KeyPressed == "Control";
         public bool IPressed => string.Equals(KeyPressed, "i", StringComparison.OrdinalIgnoreCase);
+        public bool CPressed => string.Equals(KeyPressed, "c", StringComparison.OrdinalIgnoreCase);
         public bool PPressed => string.Equals(KeyPressed, "p", StringComparison.OrdinalIgnoreCase);
         public bool NothingPressed => string.IsNullOrEmpty(KeyPressed);
 
@@ -282,7 +287,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             }
 
             //Interact with Connections
-            if (_selectedConnectionPoint == null)
+            if (_selectedConnectionPoint == null || CPressed)
             {
                 ClickConnection(position);
             }
@@ -700,16 +705,28 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             {
                 return;
             }
-
             if (_selectedConnectionPoint.Item.CollidesWith(position))
             {
-
                 return;
             }
 
-            _selectedConnectionPoint.UpdateAnchorPointDelta(position);
+            if (CPressed)
+            {
+                if(!Items.Any(i => i.CollidesWith(position)))
+                {
+                    Path.ClearPoints();
+                    var startPoint = SelectedConnectionPoint.GetOffset(SelectedConnectionPoint.Item.Margin);
+                    var endPoint = position;
+                    var path = GetPath(startPoint, endPoint);
+                    Path.AddPoints(path);
+                }
+            }
+            else
+            {
+                _selectedConnectionPoint.UpdateAnchorPointDelta(position);
 
-            _selectedConnectionPoint.Redraw();
+                _selectedConnectionPoint.Redraw();
+            }
         }
 
         private void ReleaseConnection(Vector2 position)
@@ -719,6 +736,45 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 return;
             }
 
+            if (CPressed)
+            {
+                ConnectionPointViewModel? selectedConnectionPoint = null;
+                foreach (var connection in Connections)
+                {
+                    if (connection.Point1.CollidesWith(position))
+                    {
+                        selectedConnectionPoint = connection.Point1;
+                        break;
+                    }
+
+                    if (!connection.Point2.CollidesWith(position))
+                    {
+                        continue;
+                    }
+
+                    selectedConnectionPoint = connection.Point2;
+                    break;
+                }
+
+                if (selectedConnectionPoint == null)
+                {
+                    var collidingItem = Items.FirstOrDefault(c => c.CollidesWith(position));
+                    if (collidingItem != null && collidingItem != SelectedConnectionPoint.Item)
+                    {
+                        selectedConnectionPoint = AddConnectionPoint(collidingItem);
+                        selectedConnectionPoint.UpdateAnchorPointDelta(SelectedConnectionPoint.AnchorPoint);
+                    }
+                }
+
+                if (SelectedConnectionPoint != selectedConnectionPoint && selectedConnectionPoint != null)
+                {
+                    AddConnection(SelectedConnectionPoint, selectedConnectionPoint);
+                }
+
+                Path.ClearPoints();
+            }
+
+
             foreach (var connection in _selectedConnectionPoint.Connections)
             {
                 connection.Deselect();
@@ -726,6 +782,45 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             _selectedConnectionPoint = null;
 
 
+        }
+
+        #endregion
+
+        #region PathFinding
+
+        public List<Vector2> GetPath(Vector2 startPoint, Vector2 endPoint)
+        {
+            var points = new List<Vector2>();
+
+            try
+            {
+                var mapBuilder = new MapBuilder();
+
+                foreach (var item in Items.ToList())
+                {
+                    mapBuilder.AddObstacle(item.Position - Vector2.One, item.Size + (Vector2.One * 2));
+                }
+
+                mapBuilder.SetStart(startPoint);
+                mapBuilder.SetEnd(endPoint);
+                mapBuilder.SetDimensions(Width, Height);
+                var mapResult = mapBuilder.Build();
+                if (!mapResult.Success)
+                {
+                    throw new Exception(mapResult.Message);
+                }
+
+                var pathFinder =
+                    new PathFinder.Algorithm.PathFinder(mapResult.Map, DefaultNeighbourFinder.Straight(0.5f));
+
+                points.AddRange(pathFinder.FindPath());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+
+            return points;
         }
 
         #endregion

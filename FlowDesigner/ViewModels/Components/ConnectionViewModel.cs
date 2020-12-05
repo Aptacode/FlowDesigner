@@ -36,40 +36,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public void Redraw()
         {
             Path.ClearPoints();
-
-            try
-            {
-                var mapBuilder = new MapBuilder();
-
-                foreach (var item in Designer.Items.ToList())
-                {
-                    mapBuilder.AddObstacle(item.Position - Vector2.One, item.Size + (Vector2.One * 2));
-                }
-
-                mapBuilder.SetStart(Point1.GetOffset(Point1.Item.Margin));
-                mapBuilder.SetEnd(Point2.GetOffset(Point2.Item.Margin));
-                mapBuilder.SetDimensions(Designer.Width, Designer.Height);
-                var mapResult = mapBuilder.Build();
-                if (!mapResult.Success)
-                {
-                    throw new Exception(mapResult.Message);
-                }
-
-                var pathFinder =
-                    new PathFinder.Algorithm.PathFinder(mapResult.Map, DefaultNeighbourFinder.Straight(0.5f));
-
-                var points = new List<Vector2>();
-                points.Add(Point2.GetOffset(Point2.ConnectionPointSize));
-                points.AddRange(pathFinder.FindPath());
-                points.Add(Point1.GetOffset(Point2.ConnectionPointSize));
-
-                Path.AddPoints(points);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
-
+            var startPoint = Point1.GetOffset(Point1.Item.Margin);
+            var endPoint = Point2.GetOffset(Point2.Item.Margin);
+            var path = Designer.GetPath(startPoint, endPoint);
+            Path.AddPoint(Point2.GetOffset(Point2.ConnectionPointSize));
+            Path.AddPoints(path);
+            Path.AddPoint(Point1.GetOffset(Point2.ConnectionPointSize));
         }
 
         public bool IsConnectedTo(ConnectedComponentViewModel item) => Point1.Item == item || Point2.Item == item;
