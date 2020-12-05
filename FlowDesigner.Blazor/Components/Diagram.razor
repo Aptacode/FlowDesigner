@@ -27,12 +27,12 @@
 
         @foreach (var point in Designer.Points)
         {
-            <Point Point="point" />
+            <Point Point="point" @key="point.Id"/>
         }
 
         @foreach (var connection in Designer.Connections)
         {
-            <Connection Connection="connection" />
+            <Connection Connection="connection" @key="connection.Id"/>
         }
 
         @foreach (var item in Designer.Items)

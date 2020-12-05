@@ -4,7 +4,7 @@ using System.Numerics;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 {
-    public abstract class BaseShapeViewModel : BaseComponentViewModel, ICollidor
+    public abstract class BaseShapeViewModel : BaseComponentViewModel, ICollider
     {
         private readonly float _edgeThickness;
         private float _margin;
@@ -38,12 +38,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             set => SetProperty(ref _margin, value);
         }
 
-        public Vector2 MidPoint => Position + Size / 2;
+        public Vector2 MidPoint => Position + (Size / 2);
 
         public Vector2 TopLeft => Position;
-        public Vector2 TopRight => Position + Size * new Vector2(1, 0);
+        public Vector2 TopRight => Position + (Size * new Vector2(1, 0));
         public Vector2 BottomRight => Position + Size;
-        public Vector2 BottomLeft => Position + Size * new Vector2(0, 1);
+        public Vector2 BottomLeft => Position + (Size * new Vector2(0, 1));
 
         public Vector2 SizeAndMargin => Size + new Vector2(Margin, Margin);
         public Vector2 PositionAndMargin => Position - new Vector2(Margin, Margin);

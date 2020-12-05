@@ -7,7 +7,7 @@ using Aptacode.FlowDesigner.Core.Extensions;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 {
-    public class PathViewModel : BaseComponentViewModel, ICollidor
+    public class PathViewModel : BaseComponentViewModel, ICollider
     {
         private string _path;
         private List<Vector2> _points = new List<Vector2>();

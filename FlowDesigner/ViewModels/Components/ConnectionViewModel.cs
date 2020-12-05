@@ -41,7 +41,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
                 foreach (var item in Designer.Items.ToList())
                 {
-                    mapBuilder.AddObstacle(item.Position - Vector2.One, item.Size + Vector2.One * 2);
+                    mapBuilder.AddObstacle(item.Position - Vector2.One, item.Size + (Vector2.One * 2));
                 }
 
                 mapBuilder.SetStart(Point1.GetOffset());

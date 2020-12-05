@@ -2,7 +2,7 @@
 
 namespace Aptacode.FlowDesigner.Core.ViewModels
 {
-    public interface ICollidor
+    public interface ICollider
     {
         bool CollisionsAllowed { get; set; }
         bool CollidesWithEdge(Vector2 point);
