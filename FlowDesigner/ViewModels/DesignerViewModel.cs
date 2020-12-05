@@ -16,7 +16,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 {
     public class DesignerViewModel : BindableBase
     {
-
         private bool _movingItem;
         private ResizeDirection _resizingItem;
 
@@ -63,6 +62,45 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             }
         }
 
+        #region PathFinding
+
+        public List<Vector2> GetPath(Vector2 startPoint, Vector2 endPoint)
+        {
+            var points = new List<Vector2>();
+
+            try
+            {
+                var mapBuilder = new MapBuilder();
+
+                foreach (var item in Items.ToList())
+                {
+                    mapBuilder.AddObstacle(item.Position - Vector2.One, item.Size + Vector2.One * 2);
+                }
+
+                mapBuilder.SetStart(startPoint);
+                mapBuilder.SetEnd(endPoint);
+                mapBuilder.SetDimensions(Width, Height);
+                var mapResult = mapBuilder.Build();
+                if (!mapResult.Success)
+                {
+                    throw new Exception(mapResult.Message);
+                }
+
+                var pathFinder =
+                    new PathFinder.Algorithm.PathFinder(mapResult.Map, DefaultNeighbourFinder.Straight(0.5f));
+
+                points.AddRange(pathFinder.FindPath());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+
+            return points;
+        }
+
+        #endregion
+
         #region Events
 
         public event EventHandler<IEnumerable<ConnectedComponentViewModel>> SelectedItemChanged;
@@ -92,12 +130,14 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 KeyPressed = null;
                 ReleaseItem();
             }
+
             KeyPressed = null;
         }
 
         #endregion
 
         #region Layering
+
         public void BringToFront(BaseComponentViewModel component)
         {
             if (Components.Remove(component))
@@ -117,7 +157,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public void BringForward(BaseComponentViewModel component)
         {
             var index = Components.IndexOf(component);
-            if(index == 0)
+            if (index == 0)
             {
                 return;
             }
@@ -129,13 +169,13 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public void SendBackward(BaseComponentViewModel component)
         {
             var index = Components.IndexOf(component);
-            if (index == Components.Count -1)
+            if (index == Components.Count - 1)
             {
                 return;
             }
 
             Components.RemoveAt(index);
-            Components.Insert(index +1, component);
+            Components.Insert(index + 1, component);
         }
 
         #endregion
@@ -153,16 +193,18 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public void RemoveItem(ConnectedComponentViewModel item)
         {
-            foreach(var connectionPoint in item.ConnectionPoints.ToArray())
+            foreach (var connectionPoint in item.ConnectionPoints.ToArray())
             {
-                foreach(var connection in connectionPoint.Connections.ToArray())
+                foreach (var connection in connectionPoint.Connections.ToArray())
                 {
-                    connection.Break(); 
+                    connection.Break();
                     Connections.Remove(connection);
                     Components.Remove(connection);
                 }
+
                 Components.Remove(connectionPoint);
             }
+
             Items.Remove(item);
             Components.Remove(item);
 
@@ -257,7 +299,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             }
 
             //Highlight any connections for a selected item
-            foreach (var connection in  Connections.Where(connection => SelectedItems.Any(connection.IsConnectedTo)))
+            foreach (var connection in Connections.Where(connection => SelectedItems.Any(connection.IsConnectedTo)))
             {
                 BringToFront(connection);
                 connection.BorderColor = Color.Green;
@@ -265,6 +307,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
             SelectedItemChanged?.Invoke(this, SelectedItems);
         }
+
         private ConnectionPointViewModel? _selectedConnectionPoint;
 
         public ConnectionPointViewModel? SelectedConnectionPoint
@@ -334,11 +377,15 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
                 if (position.X <= MouseDownPosition.X)
                 {
-                    Selection.Position = position.Y <= MouseDownPosition.Y ? position : new Vector2(position.X, MouseDownPosition.Y);
+                    Selection.Position = position.Y <= MouseDownPosition.Y
+                        ? position
+                        : new Vector2(position.X, MouseDownPosition.Y);
                 }
                 else
                 {
-                    Selection.Position = position.Y <= MouseDownPosition.Y ? new Vector2(MouseDownPosition.X, position.Y) : MouseDownPosition;
+                    Selection.Position = position.Y <= MouseDownPosition.Y
+                        ? new Vector2(MouseDownPosition.X, position.Y)
+                        : MouseDownPosition;
                 }
             }
         }
@@ -554,9 +601,9 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 selectedItem.Size = originalSize;
             }
 
-            if(selectedItem.Size.X < originalSize.X || selectedItem.Size.Y < originalSize.Y)
+            if (selectedItem.Size.X < originalSize.X || selectedItem.Size.Y < originalSize.Y)
             {
-                foreach(var connection in selectedItem.ConnectionPoints)
+                foreach (var connection in selectedItem.ConnectionPoints)
                 {
                     var s = connection;
                     connection.UpdateAnchorPointDelta(position);
@@ -566,82 +613,122 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                         case ResizeDirection.NW:
                             if (s.AnchorPoint.X > selectedItem.TopRight.X)
                             {
-                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.TopRight.X - 1, selectedItem.TopRight.Y));
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.TopRight.X - 1,
+                                    selectedItem.TopRight.Y));
                             }
+
                             if (s.AnchorPoint.Y < selectedItem.TopRight.Y)
                             {
-                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.TopRight.X, selectedItem.TopRight.Y + 1));
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.TopRight.X,
+                                    selectedItem.TopRight.Y + 1));
                             }
+
                             break;
                         case ResizeDirection.NE:
                             if (s.AnchorPoint.X < selectedItem.TopLeft.X)
                             {
-                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.TopLeft.X + 1, selectedItem.TopLeft.Y));
+                                s.UpdateAnchorPointDelta(
+                                    new Vector2(selectedItem.TopLeft.X + 1, selectedItem.TopLeft.Y));
                             }
+
                             if (s.AnchorPoint.Y < selectedItem.TopLeft.Y)
                             {
-                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.TopLeft.X, selectedItem.TopRight.Y + 1));
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.TopLeft.X,
+                                    selectedItem.TopRight.Y + 1));
                             }
+
                             break;
                         case ResizeDirection.SE:
                             if (s.AnchorPoint.X > selectedItem.BottomRight.X)
                             {
-                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.BottomRight.X - 1, selectedItem.BottomRight.Y));
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.BottomRight.X - 1,
+                                    selectedItem.BottomRight.Y));
                             }
+
                             if (s.AnchorPoint.Y > selectedItem.BottomRight.Y)
                             {
-                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.BottomRight.X, selectedItem.BottomRight.Y - 1));
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.BottomRight.X,
+                                    selectedItem.BottomRight.Y - 1));
                             }
+
                             break;
                         case ResizeDirection.SW:
                             if (s.AnchorPoint.X < selectedItem.BottomLeft.X)
                             {
-                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.BottomLeft.X + 1, selectedItem.BottomLeft.Y));
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.BottomLeft.X + 1,
+                                    selectedItem.BottomLeft.Y));
                             }
+
                             if (s.AnchorPoint.Y > selectedItem.BottomLeft.Y)
                             {
-                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.BottomLeft.X, selectedItem.BottomLeft.Y - 1));
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.BottomLeft.X,
+                                    selectedItem.BottomLeft.Y - 1));
                             }
+
                             break;
                         case ResizeDirection.N:
-                            if (Math.Abs(s.AnchorPoint.X - selectedItem.TopLeft.X) < Constants.Tolerance && s.AnchorPoint.Y < selectedItem.TopLeft.Y)
+                            if (Math.Abs(s.AnchorPoint.X - selectedItem.TopLeft.X) < Constants.Tolerance &&
+                                s.AnchorPoint.Y < selectedItem.TopLeft.Y)
                             {
-                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.TopLeft.X, selectedItem.TopLeft.Y + 1));
+                                s.UpdateAnchorPointDelta(
+                                    new Vector2(selectedItem.TopLeft.X, selectedItem.TopLeft.Y + 1));
                             }
-                            if (Math.Abs(s.AnchorPoint.X - selectedItem.TopRight.X) < Constants.Tolerance && s.AnchorPoint.Y < selectedItem.TopRight.Y)
+
+                            if (Math.Abs(s.AnchorPoint.X - selectedItem.TopRight.X) < Constants.Tolerance &&
+                                s.AnchorPoint.Y < selectedItem.TopRight.Y)
                             {
-                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.TopRight.X, selectedItem.TopRight.Y + 1));
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.TopRight.X,
+                                    selectedItem.TopRight.Y + 1));
                             }
+
                             break;
                         case ResizeDirection.S:
-                            if (Math.Abs(s.AnchorPoint.X - selectedItem.BottomLeft.X) < Constants.Tolerance && s.AnchorPoint.Y > selectedItem.BottomLeft.Y)
+                            if (Math.Abs(s.AnchorPoint.X - selectedItem.BottomLeft.X) < Constants.Tolerance &&
+                                s.AnchorPoint.Y > selectedItem.BottomLeft.Y)
                             {
-                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.BottomLeft.X, selectedItem.BottomLeft.Y - 1));
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.BottomLeft.X,
+                                    selectedItem.BottomLeft.Y - 1));
                             }
-                            if (Math.Abs(s.AnchorPoint.X - selectedItem.BottomRight.X) < Constants.Tolerance && s.AnchorPoint.Y > selectedItem.BottomRight.Y)
+
+                            if (Math.Abs(s.AnchorPoint.X - selectedItem.BottomRight.X) < Constants.Tolerance &&
+                                s.AnchorPoint.Y > selectedItem.BottomRight.Y)
                             {
-                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.BottomRight.X, selectedItem.BottomRight.Y - 1));
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.BottomRight.X,
+                                    selectedItem.BottomRight.Y - 1));
                             }
+
                             break;
                         case ResizeDirection.E:
-                            if (Math.Abs(s.AnchorPoint.Y - selectedItem.TopRight.Y) < Constants.Tolerance && s.AnchorPoint.X > selectedItem.TopRight.X)
+                            if (Math.Abs(s.AnchorPoint.Y - selectedItem.TopRight.Y) < Constants.Tolerance &&
+                                s.AnchorPoint.X > selectedItem.TopRight.X)
                             {
-                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.TopRight.X - 1, selectedItem.TopRight.Y));
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.TopRight.X - 1,
+                                    selectedItem.TopRight.Y));
                             }
-                            if (Math.Abs(s.AnchorPoint.Y - selectedItem.BottomRight.Y) < Constants.Tolerance && s.AnchorPoint.X > selectedItem.BottomRight.X)
+
+                            if (Math.Abs(s.AnchorPoint.Y - selectedItem.BottomRight.Y) < Constants.Tolerance &&
+                                s.AnchorPoint.X > selectedItem.BottomRight.X)
                             {
-                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.BottomRight.X - 1, selectedItem.BottomRight.Y));
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.BottomRight.X - 1,
+                                    selectedItem.BottomRight.Y));
                             }
+
                             break;
                         case ResizeDirection.W:
-                            if (Math.Abs(s.AnchorPoint.Y - selectedItem.TopLeft.Y) < Constants.Tolerance && s.AnchorPoint.X < selectedItem.TopLeft.X)
+                            if (Math.Abs(s.AnchorPoint.Y - selectedItem.TopLeft.Y) < Constants.Tolerance &&
+                                s.AnchorPoint.X < selectedItem.TopLeft.X)
                             {
-                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.TopLeft.X + 1, selectedItem.TopLeft.Y));
+                                s.UpdateAnchorPointDelta(
+                                    new Vector2(selectedItem.TopLeft.X + 1, selectedItem.TopLeft.Y));
                             }
-                            if (Math.Abs(s.AnchorPoint.Y - selectedItem.BottomLeft.Y) < Constants.Tolerance && s.AnchorPoint.X < selectedItem.BottomLeft.X)
+
+                            if (Math.Abs(s.AnchorPoint.Y - selectedItem.BottomLeft.Y) < Constants.Tolerance &&
+                                s.AnchorPoint.X < selectedItem.BottomLeft.X)
                             {
-                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.BottomLeft.X + 1, selectedItem.BottomLeft.Y));
+                                s.UpdateAnchorPointDelta(new Vector2(selectedItem.BottomLeft.X + 1,
+                                    selectedItem.BottomLeft.Y));
                             }
+
                             break;
                         case ResizeDirection.None:
                             break;
@@ -649,7 +736,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                             throw new ArgumentOutOfRangeException();
                     }
                 }
-            }    
+            }
 
             LastMousePosition = position;
         }
@@ -714,6 +801,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             {
                 return;
             }
+
             if (_selectedConnectionPoint.Item.CollidesWith(position))
             {
                 return;
@@ -721,10 +809,10 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
             if (CPressed)
             {
-                if(!Items.Any(i => i.CollidesWith(position)))
+                if (!Items.Any(i => i.CollidesWith(position)))
                 {
                     Path.ClearPoints();
-                    var startPoint = SelectedConnectionPoint.GetOffset(SelectedConnectionPoint.Item.Margin);
+                    var startPoint = _selectedConnectionPoint.GetOffset(_selectedConnectionPoint.Item.Margin);
                     var endPoint = position;
                     var path = GetPath(startPoint, endPoint);
                     Path.AddPoints(path);
@@ -740,7 +828,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         private void ReleaseConnection(Vector2 position)
         {
-            if(_selectedConnectionPoint == null)
+            if (_selectedConnectionPoint == null)
             {
                 return;
             }
@@ -768,16 +856,16 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 if (selectedConnectionPoint == null)
                 {
                     var collidingItem = Items.FirstOrDefault(c => c.CollidesWith(position));
-                    if (collidingItem != null && collidingItem != SelectedConnectionPoint.Item)
+                    if (collidingItem != null && collidingItem != _selectedConnectionPoint.Item)
                     {
                         selectedConnectionPoint = AddConnectionPoint(collidingItem);
-                        selectedConnectionPoint.UpdateAnchorPointDelta(SelectedConnectionPoint.AnchorPoint);
+                        selectedConnectionPoint.UpdateAnchorPointDelta(_selectedConnectionPoint.AnchorPoint);
                     }
                 }
 
                 if (SelectedConnectionPoint != selectedConnectionPoint && selectedConnectionPoint != null)
                 {
-                    AddConnection(SelectedConnectionPoint, selectedConnectionPoint);
+                    AddConnection(_selectedConnectionPoint, selectedConnectionPoint);
                 }
 
                 Path.ClearPoints();
@@ -788,48 +876,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             {
                 connection.Deselect();
             }
+
             _selectedConnectionPoint = null;
-
-
-        }
-
-        #endregion
-
-        #region PathFinding
-
-        public List<Vector2> GetPath(Vector2 startPoint, Vector2 endPoint)
-        {
-            var points = new List<Vector2>();
-
-            try
-            {
-                var mapBuilder = new MapBuilder();
-
-                foreach (var item in Items.ToList())
-                {
-                    mapBuilder.AddObstacle(item.Position - Vector2.One, item.Size + (Vector2.One * 2));
-                }
-
-                mapBuilder.SetStart(startPoint);
-                mapBuilder.SetEnd(endPoint);
-                mapBuilder.SetDimensions(Width, Height);
-                var mapResult = mapBuilder.Build();
-                if (!mapResult.Success)
-                {
-                    throw new Exception(mapResult.Message);
-                }
-
-                var pathFinder =
-                    new PathFinder.Algorithm.PathFinder(mapResult.Map, DefaultNeighbourFinder.Straight(0.5f));
-
-                points.AddRange(pathFinder.FindPath());
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
-
-            return points;
         }
 
         #endregion

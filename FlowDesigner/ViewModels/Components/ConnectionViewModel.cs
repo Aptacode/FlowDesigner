@@ -1,15 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Numerics;
-using System.Threading.Tasks;
 using Aptacode.FlowDesigner.Core.Enums;
-using Aptacode.FlowDesigner.Core.ViewModels.Components;
-using Aptacode.PathFinder.Geometry.Neighbours;
-using Aptacode.PathFinder.Maps;
 
-namespace Aptacode.FlowDesigner.Core.ViewModels
+namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 {
     public class ConnectionViewModel : BaseComponentViewModel
     {

@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
 using System.Numerics;
-using Aptacode.FlowDesigner.Core.ViewModels.Components;
 
-namespace Aptacode.FlowDesigner.Core.ViewModels
+namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 {
     public class ConnectionPointViewModel : BaseComponentViewModel
     {
@@ -196,8 +194,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         internal void Redraw()
         {
-            foreach(var connection in Connections)
-            { 
+            foreach (var connection in Connections)
+            {
                 connection.Redraw();
             }
         }

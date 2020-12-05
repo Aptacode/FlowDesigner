@@ -1,7 +1,7 @@
-﻿using Aptacode.FlowDesigner.Core.Enums;
-using System;
+﻿using System;
 using System.Linq;
 using System.Numerics;
+using Aptacode.FlowDesigner.Core.Enums;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 {
@@ -39,12 +39,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             set => SetProperty(ref _margin, value);
         }
 
-        public Vector2 MidPoint => Position + (Size / 2);
+        public Vector2 MidPoint => Position + Size / 2;
 
         public Vector2 TopLeft => Position;
-        public Vector2 TopRight => Position + (Size * new Vector2(1, 0));
+        public Vector2 TopRight => Position + Size * new Vector2(1, 0);
         public Vector2 BottomRight => Position + Size;
-        public Vector2 BottomLeft => Position + (Size * new Vector2(0, 1));
+        public Vector2 BottomLeft => Position + Size * new Vector2(0, 1);
 
         public Vector2 SizeAndMargin => Size + new Vector2(Margin, Margin);
         public Vector2 PositionAndMargin => Position - new Vector2(Margin, Margin);
@@ -79,39 +79,43 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             {
                 return ResizeDirection.NW;
             }
-            else if (position == TopRight)
+
+            if (position == TopRight)
             {
                 return ResizeDirection.NE;
             }
-            else if (position == BottomLeft)
+
+            if (position == BottomLeft)
             {
                 return ResizeDirection.SW;
             }
-            else if (position == BottomRight)
+
+            if (position == BottomRight)
             {
                 return ResizeDirection.SE;
             }
-            else if (Math.Abs(position.X - TopLeft.X) < Constants.Tolerance)
+
+            if (Math.Abs(position.X - TopLeft.X) < Constants.Tolerance)
             {
                 return ResizeDirection.W;
             }
-            else if (Math.Abs(position.X - TopRight.X) < Constants.Tolerance)
+
+            if (Math.Abs(position.X - TopRight.X) < Constants.Tolerance)
             {
                 return ResizeDirection.E;
             }
-            else if (Math.Abs(position.Y - TopLeft.Y) < Constants.Tolerance)
+
+            if (Math.Abs(position.Y - TopLeft.Y) < Constants.Tolerance)
             {
                 return ResizeDirection.N;
             }
-            else if (Math.Abs(position.Y - BottomLeft.Y) < Constants.Tolerance)
+
+            if (Math.Abs(position.Y - BottomLeft.Y) < Constants.Tolerance)
             {
                 return ResizeDirection.S;
             }
-            else
-            {
-                return ResizeDirection.None;
-            }
+
+            return ResizeDirection.None;
         }
-         
     }
 }

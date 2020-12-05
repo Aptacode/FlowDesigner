@@ -6,9 +6,9 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 {
     public abstract class BaseComponentViewModel : BindableBase
     {
+        private readonly Color _fillColor = Color.White;
         private Color _borderColor = Color.Black;
         private float _borderThickness;
-        private readonly Color _fillColor = Color.White;
         private bool _isShown;
 
         protected BaseComponentViewModel(Guid id)
