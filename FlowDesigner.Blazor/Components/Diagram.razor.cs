@@ -27,7 +27,6 @@ namespace Aptacode.FlowDesigner.Blazor.Components
             }
         }
 
-
         protected override async Task OnInitializedAsync()
         {
             Designer.RedrawConnections();
@@ -42,7 +41,8 @@ namespace Aptacode.FlowDesigner.Blazor.Components
                 if (Designer.MovingItem)
                 {
                     Cursor = "move";
-                }else if (Designer.ResizeDirection != ResizeDirection.None)
+                }
+                else if (Designer.ResizeDirection != ResizeDirection.None)
                 {
                     switch (Designer.ResizeDirection)
                     {

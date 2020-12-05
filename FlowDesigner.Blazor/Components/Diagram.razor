@@ -22,8 +22,6 @@
             </pattern>
         </defs>
         <rect width="100%" height="100%" fill="url(#grid)" />
-        <Selection Selection="@(Designer.Selection)" />
-        <Path Path="@(Designer.Path)" />
 
         @foreach (var component in Designer.Components)
         {
@@ -40,6 +38,9 @@
                     break;
             }
         }
+
+        <Selection Selection="@(Designer.Selection)" />
+        <Path Path="@(Designer.Path)" />
 
     </svg>
 
