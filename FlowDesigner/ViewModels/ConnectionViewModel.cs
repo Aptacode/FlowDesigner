@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Drawing;
+using Aptacode.CSharp.Common.Utilities.Mvvm;
 using Aptacode.FlowDesigner.Core.Enums;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 {
-    public class ConnectionViewModel : BaseComponentViewModel
+    public class ConnectionViewModel : BindableBase
     {
         public ConnectionViewModel(
-            Guid id,
             DesignerViewModel designer,
             ConnectionPointViewModel point1,
-            ConnectionPointViewModel point2) : base(id)
+            ConnectionPointViewModel point2)
         {
             Point1 = point1;
             Point2 = point2;
@@ -50,7 +50,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             Point1.BorderColor = Color.Black;
             Point2.BorderColor = Color.Black;
             Path.BorderColor = Color.Black;
-            BorderColor = Color.Black;
         }
 
         public void Select()
@@ -58,7 +57,13 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             Point1.BorderColor = Color.Green;
             Point2.BorderColor = Color.Green;
             Path.BorderColor = Color.Green;
-            BorderColor = Color.Green;
+        }        
+        
+        public void BringToFront(DesignerViewModel designer)
+        {
+            designer.BringToFront(Point1);
+            designer.BringToFront(Point2);
+            designer.BringToFront(Path);
         }
     }
 }

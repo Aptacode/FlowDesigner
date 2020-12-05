@@ -32,11 +32,11 @@
                 case PointViewModel pointViewModel:
                     <Point Point="pointViewModel" @key="pointViewModel.Id" />
                     break;
-                case ConnectionViewModel connectionViewModel:
-                    <Connection Connection="connectionViewModel" @key="connectionViewModel.Id" />
-                    break;
                 case ConnectedComponentViewModel connectedComponentViewModel:
                     <Item Item="connectedComponentViewModel" @key="connectedComponentViewModel.Id" />
+                    break;
+                case PathViewModel pathViewModel:
+                    <Path Path="pathViewModel" @key="pathViewModel.Id" />
                     break;
             }
         }

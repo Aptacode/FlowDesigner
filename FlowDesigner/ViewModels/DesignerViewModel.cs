@@ -197,9 +197,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             {
                 foreach (var connection in connectionPoint.Connections.ToArray())
                 {
-                    connection.Break();
-                    Connections.Remove(connection);
-                    Components.Remove(connection);
+                    RemoveConnection(connection);
                 }
 
                 Components.Remove(connectionPoint);
@@ -243,9 +241,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             connectionPoint.Item.ConnectionPoints.Remove(connectionPoint);
             foreach (var connection in connectionPoint.Connections.ToArray())
             {
-                Connections.Remove(connection);
-                Components.Remove(connection);
-                connection.Break();
+                RemoveConnection(connection);
             }
 
             OnPropertyChanged(nameof(Items));
@@ -253,11 +249,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public ConnectionViewModel AddConnection(ConnectionPointViewModel point1, ConnectionPointViewModel point2)
         {
-            var newConnection = new ConnectionViewModel(Guid.NewGuid(), this, point1, point2);
+            var newConnection = new ConnectionViewModel(this, point1, point2);
             Connections.Add(newConnection);
             point1.Connections.Add(newConnection);
             point2.Connections.Add(newConnection);
-            Components.Add(newConnection);
+            Components.Add(newConnection.Path);
+
             OnPropertyChanged(nameof(Connections));
             return newConnection;
         }
@@ -267,7 +264,22 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         {
             connection.Break();
             Connections.Remove(connection);
-            Components.Remove(connection);
+            Components.Remove(connection.Path);
+
+            OnPropertyChanged(nameof(Connections));
+        }
+
+        public PathViewModel AddPath(PathViewModel path)
+        {
+            Components.Add(path);
+            OnPropertyChanged(nameof(Connections));
+            return path;
+        }
+
+
+        public void RemovePath(PathViewModel path)
+        {
+            Components.Remove(path);
             OnPropertyChanged(nameof(Connections));
         }
 
@@ -301,8 +313,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             //Highlight any connections for a selected item
             foreach (var connection in Connections.Where(connection => SelectedItems.Any(connection.IsConnectedTo)))
             {
-                BringToFront(connection);
-                connection.BorderColor = Color.Green;
+                connection.Select();
+                connection.BringToFront(this);
             }
 
             SelectedItemChanged?.Invoke(this, SelectedItems);
@@ -753,8 +765,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
             foreach (var connection in Connections)
             {
-                connection.BorderColor = Color.Black;
-                connection.Redraw();
+                connection.Deselect();
             }
 
             ClearSelectedItems();
