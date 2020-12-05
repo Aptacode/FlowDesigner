@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Numerics;
 using Aptacode.FlowDesigner.Core.ViewModels.Components;
 
@@ -81,6 +82,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             }
 
             AnchorPointDelta = Item.MidPoint - tempAnchorPoint;
+            _anchorPoint = tempAnchorPoint;
+            Redraw();
             AnchorPoint = tempAnchorPoint;
         }
 
@@ -148,47 +151,55 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public Vector2 GetOffset(float offset)
         {
-            if (AnchorPoint == Item.TopLeft)
+            if (_anchorPoint == Item.TopLeft)
             {
-                return AnchorPoint + new Vector2(-offset, -offset);
+                return _anchorPoint + new Vector2(-offset, -offset);
             }
 
-            if (AnchorPoint == Item.TopRight)
+            if (_anchorPoint == Item.TopRight)
             {
-                return AnchorPoint + new Vector2(offset, -offset);
+                return _anchorPoint + new Vector2(offset, -offset);
             }
 
-            if (AnchorPoint == Item.BottomRight)
+            if (_anchorPoint == Item.BottomRight)
             {
-                return AnchorPoint + new Vector2(offset, offset);
+                return _anchorPoint + new Vector2(offset, offset);
             }
 
-            if (AnchorPoint == Item.BottomLeft)
+            if (_anchorPoint == Item.BottomLeft)
             {
-                return AnchorPoint + new Vector2(-offset, offset);
+                return _anchorPoint + new Vector2(-offset, offset);
             }
 
-            if (Math.Abs(AnchorPoint.Y - Item.TopLeft.Y) < Constants.Tolerance)
+            if (Math.Abs(_anchorPoint.Y - Item.TopLeft.Y) < Constants.Tolerance)
             {
-                return AnchorPoint + new Vector2(0, -offset);
+                return _anchorPoint + new Vector2(0, -offset);
             }
 
-            if (Math.Abs(AnchorPoint.Y - Item.BottomRight.Y) < Constants.Tolerance)
+            if (Math.Abs(_anchorPoint.Y - Item.BottomRight.Y) < Constants.Tolerance)
             {
-                return AnchorPoint + new Vector2(0, offset);
+                return _anchorPoint + new Vector2(0, offset);
             }
 
-            if (Math.Abs(AnchorPoint.X - Item.TopLeft.X) < Constants.Tolerance)
+            if (Math.Abs(_anchorPoint.X - Item.TopLeft.X) < Constants.Tolerance)
             {
-                return AnchorPoint + new Vector2(-offset, 0);
+                return _anchorPoint + new Vector2(-offset, 0);
             }
 
-            if (Math.Abs(AnchorPoint.X - Item.BottomRight.X) < Constants.Tolerance)
+            if (Math.Abs(_anchorPoint.X - Item.BottomRight.X) < Constants.Tolerance)
             {
-                return AnchorPoint + new Vector2(offset, 0);
+                return _anchorPoint + new Vector2(offset, 0);
             }
 
             return Vector2.Zero;
+        }
+
+        internal void Redraw()
+        {
+            foreach(var connection in Connections)
+            { 
+                connection.Redraw();
+            }
         }
     }
 }

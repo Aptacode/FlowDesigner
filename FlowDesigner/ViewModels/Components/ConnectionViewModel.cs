@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using Aptacode.FlowDesigner.Core.Enums;
 using Aptacode.FlowDesigner.Core.ViewModels.Components;
 using Aptacode.PathFinder.Geometry.Neighbours;
@@ -67,6 +69,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             {
                 Console.WriteLine(ex.ToString());
             }
+
         }
 
         public bool IsConnectedTo(ConnectedComponentViewModel item) => Point1.Item == item || Point2.Item == item;
@@ -75,6 +78,22 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         {
             Point1.Connections.Remove(this);
             Point2.Connections.Remove(this);
+        }
+
+        public void Deselect()
+        {
+            Point1.BorderColor = Color.Black;
+            Point2.BorderColor = Color.Black;
+            Path.BorderColor = Color.Black;
+            BorderColor = Color.Black;
+        }
+
+        public void Select()
+        {
+            Point1.BorderColor = Color.Green;
+            Point2.BorderColor = Color.Green;
+            Path.BorderColor = Color.Green;
+            BorderColor = Color.Green;
         }
     }
 }

@@ -10,12 +10,10 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         private float _borderThickness;
         private readonly Color _fillColor = Color.White;
         private bool _isShown;
-        private int _z;
 
         protected BaseComponentViewModel(Guid id)
         {
             Id = id;
-            Z = 10;
             IsShown = true;
             _borderThickness = 0.3f;
         }
@@ -26,12 +24,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         {
             get => _isShown;
             set => SetProperty(ref _isShown, value);
-        }
-
-        public int Z
-        {
-            get => _z;
-            set => SetProperty(ref _z, value);
         }
 
         public Color BorderColor

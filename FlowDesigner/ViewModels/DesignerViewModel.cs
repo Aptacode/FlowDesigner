@@ -26,8 +26,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             ResizingItem = ResizeDirection.None;
         }
 
-        private ConnectionPointViewModel? _connectedItem { get; set; }
-
         private Vector2 LastMousePosition { get; set; }
         private Vector2 MouseDownPosition { get; set; }
 
@@ -50,10 +48,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public List<ConnectionViewModel> Connections { get; set; } = new List<ConnectionViewModel>();
         public List<BaseComponentViewModel> Components { get; set; } = new List<BaseComponentViewModel>();
 
-
-
-
-
         public int Width { get; set; }
         public int Height { get; set; }
 
@@ -68,7 +62,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         #region Events
 
         public event EventHandler<IEnumerable<ConnectedComponentViewModel>> SelectedItemChanged;
-        public event EventHandler<ConnectionViewModel> SelectedConnectionChanged;
+        public event EventHandler<ConnectionPointViewModel> SelectedConnectionChanged;
 
         #endregion
 
@@ -91,46 +85,47 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             ReleaseItem();
         }
 
-        #endregion
-
+        #endregion        
+        
         #region Layering
-
-        public void BringToFront(ConnectedComponentViewModel item)
+        public void BringToFront(BaseComponentViewModel component)
         {
-            item.Z = Items.Max(i => i.Z) + 1;
+            if (Components.Remove(component))
+            {
+                Components.Insert(0, component);
+            }
         }
 
-        public void SendToBack(ConnectedComponentViewModel item)
+        public void SendToBack(BaseComponentViewModel component)
         {
-            var min = Items.Min(i => i.Z);
-            if (min <= 1)
+            if (Components.Remove(component))
             {
-                foreach (var i in Items)
-                {
-                    i.Z++;
-                }
+                Components.Add(component);
+            }
+        }
+
+        public void BringForward(BaseComponentViewModel component)
+        {
+            var index = Components.IndexOf(component);
+            if(index == 0)
+            {
+                return;
             }
 
-            item.Z = min - 1;
+            Components.RemoveAt(index);
+            Components.Insert(index - 1, component);
         }
 
-        public void BringToFront(ConnectionViewModel connection)
+        public void SendBackward(BaseComponentViewModel component)
         {
-            connection.Z = Connections.Max(i => i.Z) + 1;
-        }
-
-        public void SendToBack(ConnectionViewModel connection)
-        {
-            var min = Connections.Min(i => i.Z);
-            if (min <= 1)
+            var index = Components.IndexOf(component);
+            if (index == Components.Count -1)
             {
-                foreach (var i in Items)
-                {
-                    i.Z++;
-                }
+                return;
             }
 
-            connection.Z = min - 1;
+            Components.RemoveAt(index);
+            Components.Insert(index +1, component);
         }
 
         #endregion
@@ -196,6 +191,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         {
             var newConnection = new ConnectionViewModel(Guid.NewGuid(), this, point1, point2);
             Connections.Add(newConnection);
+            point1.Connections.Add(newConnection);
+            point2.Connections.Add(newConnection);
             Components.Add(newConnection);
             OnPropertyChanged(nameof(Connections));
             return newConnection;
@@ -246,30 +243,24 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
             SelectedItemChanged?.Invoke(this, SelectedItems);
         }
+        private ConnectionPointViewModel? _selectedConnectionPoint;
 
-        private ConnectionViewModel? _selectedConnection;
-
-        public ConnectionViewModel? SelectedConnection
+        public ConnectionPointViewModel? SelectedConnectionPoint
         {
-            get => _selectedConnection;
+            get => _selectedConnectionPoint;
             set
             {
-                var prevSelectedItem = _selectedConnection;
-
-                SetProperty(ref _selectedConnection, value);
-
-                //Highlight Connection
-                if (prevSelectedItem != null)
+                if (value != null)
                 {
-                    prevSelectedItem.BorderColor = Color.Black;
+                    foreach (var connection in value.Connections)
+                    {
+                        connection.Select();
+                        BringToFront(connection.Path);
+                    }
                 }
 
-                if (_selectedConnection != null)
-                {
-                    _selectedConnection.BorderColor = Color.Green;
-                }
-
-                SelectedConnectionChanged?.Invoke(this, _selectedConnection);
+                SetProperty(ref _selectedConnectionPoint, value);
+                SelectedConnectionChanged?.Invoke(this, _selectedConnectionPoint);
             }
         }
 
@@ -291,13 +282,13 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             }
 
             //Interact with Connections
-            if (SelectedConnection == null)
+            if (_selectedConnectionPoint == null)
             {
                 ClickConnection(position);
             }
 
             //Interact with Items
-            if (SelectedConnection == null)
+            if (_selectedConnectionPoint == null)
             {
                 ClickItem(position);
             }
@@ -310,22 +301,46 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 MoveItem(position);
             }
 
-            if (SelectedConnection != null)
+            if (_selectedConnectionPoint != null)
             {
                 MoveConnection(position);
+            }
+
+            if (Selection.IsShown)
+            {
+                Selection.Size = Vector2.Abs(MouseDownPosition - position);
+
+                if (position.X <= MouseDownPosition.X)
+                {
+                    Selection.Position = position.Y <= MouseDownPosition.Y ? position : new Vector2(position.X, MouseDownPosition.Y);
+                }
+                else
+                {
+                    Selection.Position = position.Y <= MouseDownPosition.Y ? new Vector2(MouseDownPosition.X, position.Y) : MouseDownPosition;
+                }
             }
         }
 
         public void MouseUp(Vector2 position)
         {
-            if (SelectedItems != null)
+            if (SelectedItems.Count > 0)
             {
                 ReleaseItem();
             }
 
-            if (SelectedConnection != null)
+            if (_selectedConnectionPoint != null)
             {
                 ReleaseConnection(position);
+            }
+
+            if (Selection.IsShown)
+            {
+                Selection.IsShown = false;
+
+                SelectedItems.AddRange(Items.Where(i =>
+                    i.CollidesWith(Selection.PositionAndMargin, Selection.SizeAndMargin)));
+
+                UpdateSelectedItems();
             }
         }
 
@@ -443,20 +458,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         private void MoveItem(Vector2 position)
         {
             var movingItems = SelectedItems.ToHashSet();
-            if (Selection.IsShown)
-            {
-                Selection.Size = Vector2.Abs(MouseDownPosition - position);
-
-                if (position.X <= MouseDownPosition.X)
-                {
-                    Selection.Position = position.Y <= MouseDownPosition.Y ? position : new Vector2(position.X, MouseDownPosition.Y);
-                }
-                else
-                {
-                    Selection.Position = position.Y <= MouseDownPosition.Y ? new Vector2(MouseDownPosition.X, position.Y) : MouseDownPosition;
-                }
-            }
-            else if (MovingItem)
+            if (MovingItem)
             {
                 var delta = position - LastMousePosition;
 
@@ -658,17 +660,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             MovingItem = false;
             ResizingItem = ResizeDirection.None;
 
-            if (Selection.IsShown)
-            {
-                Selection.IsShown = false;
-
-                SelectedItems.AddRange(Items.Where(i =>
-                    i.CollidesWith(Selection.PositionAndMargin, Selection.SizeAndMargin)));
-
-                UpdateSelectedItems();
-                return;
-            }
-
             if (ControlPressed)
             {
                 return;
@@ -689,8 +680,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             {
                 if (connection.Point1.CollidesWith(position))
                 {
-                    _connectedItem = connection.Point1;
-                    SelectedConnection = connection;
+                    SelectedConnectionPoint = connection.Point1;
                     break;
                 }
 
@@ -699,37 +689,43 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     continue;
                 }
 
-                _connectedItem = connection.Point2;
-                SelectedConnection = connection;
+                SelectedConnectionPoint = connection.Point2;
                 break;
-            }
-
-            if (SelectedConnection != null)
-            {
-                BringToFront(SelectedConnection);
             }
         }
 
         private void MoveConnection(Vector2 position)
         {
-            if (SelectedConnection == null)
+            if (_selectedConnectionPoint == null)
             {
                 return;
             }
 
-            if (_connectedItem.Item.CollidesWith(position))
+            if (_selectedConnectionPoint.Item.CollidesWith(position))
             {
+
                 return;
             }
 
-            _connectedItem.UpdateAnchorPointDelta(position);
+            _selectedConnectionPoint.UpdateAnchorPointDelta(position);
 
-            SelectedConnection.Redraw();
+            _selectedConnectionPoint.Redraw();
         }
 
         private void ReleaseConnection(Vector2 position)
         {
-            SelectedConnection = null;
+            if(_selectedConnectionPoint == null)
+            {
+                return;
+            }
+
+            foreach (var connection in _selectedConnectionPoint.Connections)
+            {
+                connection.Deselect();
+            }
+            _selectedConnectionPoint = null;
+
+
         }
 
         #endregion
