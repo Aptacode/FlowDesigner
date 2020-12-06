@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Aptacode.FlowDesigner.Core.Enums;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -33,6 +34,14 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             foreach (var connectionPoint in ConnectionPoints.ToArray())
             {
                 connectionPoint.RemoveFrom(designer);
+            }
+        }
+        public override void Resize(DesignerViewModel designer, Vector2 delta, ResizeDirection direction)
+        {
+            base.Resize(designer, delta, direction);
+            foreach(var connection in ConnectionPoints)
+            {
+                connection.Redraw();
             }
         }
     }

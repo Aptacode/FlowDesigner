@@ -132,7 +132,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             }
 
             var m = (end.Y - start.Y) / (end.X - start.X);
-            var c = -m * start.X + start.Y;
+            var c = (-m * start.X) + start.Y;
             return (m, c);
         }
 
@@ -280,7 +280,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         public ConnectionViewModel Connect(DesignerViewModel designer, ConnectionPointViewModel point2)
         {
-            var newConnection = ComponentFactory.CreateConnection(designer, this, point2);
+            var newConnection = designer.CreateConnection(this, point2);
             OnPropertyChanged(nameof(Connections));
             newConnection.Redraw();
             return newConnection;
