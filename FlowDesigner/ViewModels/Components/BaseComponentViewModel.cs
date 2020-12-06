@@ -12,6 +12,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         private Color _borderColor = Color.Black;
         private float _borderThickness;
         private bool _isShown = true;
+        protected bool _isSelected = false;
 
         protected BaseComponentViewModel(Guid id)
         {
@@ -56,14 +57,24 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         public virtual void Deselect(DesignerViewModel designer)
         {
-            BorderColor = Color.Black;
-            designer.BringToFront(this);
+            if (_isSelected)
+            {
+                _isSelected = false;
+
+                BorderColor = Color.Black;
+                designer.BringToFront(this);
+            }
         }
 
         public virtual void Select(DesignerViewModel designer)
         {
-            BorderColor = Color.Green;
-            designer.BringToFront(this);
+            if (!_isSelected)
+            {
+                _isSelected = true;
+
+                BorderColor = Color.Green;
+                designer.BringToFront(this);
+            }
         }
     }
 }

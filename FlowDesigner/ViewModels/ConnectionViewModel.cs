@@ -26,6 +26,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public ConnectionMode ModeA { get; set; }
         public ConnectionMode ModeB { get; set; }
         public DesignerViewModel Designer { get; set; }
+        public bool _isSelected { get; set; }
 
         public void Redraw()
         {
@@ -42,17 +43,27 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public void Deselect(DesignerViewModel designer)
         {
-            Point1.BorderColor = Color.Black;
-            Point2.BorderColor = Color.Black;
-            Path.BorderColor = Color.Black;
+            if (_isSelected)
+            {
+                Point1.BorderColor = Color.Black;
+                Point2.BorderColor = Color.Black;
+                Path.BorderColor = Color.Black;
+                _isSelected = false;
+            }
         }
 
         public void Select(DesignerViewModel designer)
         {
-            Point1.BorderColor = Color.Green;
-            Point2.BorderColor = Color.Green;
-            Path.BorderColor = Color.Green;
-            BringToFront(designer);
+            if (!_isSelected)
+            {
+                Point1.Select(designer);
+                Point1.BorderColor = Color.Green;
+                Point2.BorderColor = Color.Green;
+                Path.BorderColor = Color.Green;
+                BringToFront(designer);
+                _isSelected = true;
+            }
+
         }
 
         public void BringToFront(DesignerViewModel designer)

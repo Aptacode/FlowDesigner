@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using Aptacode.FlowDesigner.Core.Enums;
@@ -38,14 +39,24 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         public override void Select(DesignerViewModel designer)
         {
-            ConnectionPoints.ForEach(c => c.Select(designer));
-            base.Select(designer);
+            if (!_isSelected)
+            {
+                _isSelected = true;
+                BorderColor = Color.Green;
+                ConnectionPoints.ForEach(c => c.Select(designer));
+                base.Select(designer);
+            }
         }
 
         public override void Deselect(DesignerViewModel designer)
         {
-            ConnectionPoints.ForEach(c => c.Deselect(designer));
-            base.Deselect(designer);
+            if (_isSelected)
+            {
+                _isSelected = false;
+                BorderColor = Color.Black;
+                ConnectionPoints.ForEach(c => c.Deselect(designer));
+                base.Deselect(designer);
+            }
         }
     }
 }

@@ -5,7 +5,6 @@ using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Threading;
-using Aptacode.CSharp.Common.Utilities.Extensions;
 using Aptacode.CSharp.Common.Utilities.Mvvm;
 using Aptacode.FlowDesigner.Core.Enums;
 using Aptacode.FlowDesigner.Core.Extensions;
@@ -26,7 +25,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 BorderColor = Color.Green
             };
 
-            Path = new PathViewModel();
+            NewConnectionPath = new PathViewModel();
             MousePoint = new PointViewModel(Guid.NewGuid(), Vector2.Zero) {IsShown = false};
 
             ResizeDirection = ResizeDirection.None;
@@ -54,7 +53,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public SelectionViewModel Selection { get; set; }
         public SelectionViewModel CreateSelection { get; set; }
-        public PathViewModel Path { get; set; }
+        public PathViewModel NewConnectionPath { get; set; }
         public PointViewModel MousePoint { get; set; }
         public Dictionary<Type, List<BaseComponentViewModel>> ComponentsByType { get; set; } = new Dictionary<Type, List<BaseComponentViewModel>>();
         public readonly HashSet<ConnectedComponentViewModel> SelectedItems = new HashSet<ConnectedComponentViewModel>();
@@ -224,6 +223,11 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
             if (_selectedConnectionPoint != null)
             {
+                if (NewConnectionPath.IsShown)
+                {
+                    ReleaseNewConnectionPath(e);
+                }
+
                 ConnectionReleased(e);
             }
 
@@ -506,22 +510,45 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 return;
             }
 
-            Path.ClearPoints();
+            NewConnectionPath.ClearPoints();
             var startPoint = _selectedConnectionPoint.GetOffset(_selectedConnectionPoint.Item.Margin);
             var path = this.GetPath(startPoint, position);
 
             path.Add(_selectedConnectionPoint.GetOffset(_selectedConnectionPoint.ConnectionPointSize));
-            Path.AddPoints(path);
+            NewConnectionPath.AddPoints(path);
             MousePoint.Position = position;
             MousePoint.IsShown = true;
-            Path.IsShown = true;
+            NewConnectionPath.IsShown = true;
         }
 
-        private void ReleaseNewConnectionPath()
+        private void ReleaseNewConnectionPath(Vector2 position)
         {
             MousePoint.IsShown = false;
-            Path.IsShown = false;
-            Path.ClearPoints();
+            NewConnectionPath.IsShown = false;
+            NewConnectionPath.ClearPoints();
+
+            var selectedConnectionPoint = GetComponents<ConnectionPointViewModel>()
+                .FirstOrDefault(c => c.CollidesWith(position));
+
+            if (selectedConnectionPoint == null)
+            {
+                var collidingItem = ConnectedComponents.FirstOrDefault(c => c.CollidesWith(position));
+                if (collidingItem != null && collidingItem != _selectedConnectionPoint.Item)
+                {
+                    selectedConnectionPoint = this.CreateConnectionPoint(collidingItem, position);
+                    selectedConnectionPoint.Update(_selectedConnectionPoint.AnchorPoint);
+                }
+            }
+
+            if (SelectedConnectionPoint != selectedConnectionPoint && selectedConnectionPoint != null)
+            {
+                _selectedConnectionPoint.Connect(this, selectedConnectionPoint);
+            }
+
+            if (SelectedConnectionPoint?.Connections.Count == 0)
+            {
+                SelectedConnectionPoint.RemoveFrom(this);
+            }
         }
 
         private void MoveConnection(Vector2 position)
@@ -536,39 +563,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         private void ConnectionReleased(Vector2 position)
         {
-            ReleaseNewConnectionPath();
-
-            if (_selectedConnectionPoint == null)
-            {
-                return;
-            }
-
-            if (Interactor.IsPressed("c"))
-            {
-                var selectedConnectionPoint = GetComponents<ConnectionPointViewModel>()
-                    .FirstOrDefault(c => c.CollidesWith(position));
-
-                if (selectedConnectionPoint == null)
-                {
-                    var collidingItem = ConnectedComponents.FirstOrDefault(c => c.CollidesWith(position));
-                    if (collidingItem != null && collidingItem != _selectedConnectionPoint.Item)
-                    {
-                        selectedConnectionPoint = this.CreateConnectionPoint(collidingItem, position);
-                        selectedConnectionPoint.Update(_selectedConnectionPoint.AnchorPoint);
-                    }
-                }
-
-                if (SelectedConnectionPoint != selectedConnectionPoint && selectedConnectionPoint != null)
-                {
-                    _selectedConnectionPoint.Connect(this, selectedConnectionPoint);
-                }
-
-                if (SelectedConnectionPoint?.Connections.Count == 0)
-                {
-                    SelectedConnectionPoint.RemoveFrom(this);
-                }
-            }
-
             _selectedConnectionPoint.Deselect(this);
             _selectedConnectionPoint = null;
         }
