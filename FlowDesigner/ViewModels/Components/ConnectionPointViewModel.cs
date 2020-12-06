@@ -252,37 +252,31 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         public override void AddTo(DesignerViewModel designer)
         {
+            designer.Add(this);
+
+            Item.ConnectionPoints.Add(this);
+
             foreach (var connection in Connections.ToArray())
             {
-                if (!designer.Connections.Contains(connection))
-                {
-                    designer.Connections.Add(connection);
-                }
+                connection.AddTo(designer);
             }
-            base.AddTo(designer);
         }
 
         public override void RemoveFrom(DesignerViewModel designer)
         {
+            designer.Remove(this);
+
             Item.ConnectionPoints.Remove(this);
 
             foreach (var connection in Connections.ToArray())
             {
-                connection.Break(designer);
-                designer.Connections.Remove(connection);
+                connection.RemoveFrom(designer);
             }
-
-            base.RemoveFrom(designer);
         }
 
         public ConnectionViewModel Connect(DesignerViewModel designer, ConnectionPointViewModel point2)
         {
             var newConnection = ComponentFactory.CreateConnection(designer, this, point2);
-            Connections.Add(newConnection);
-
-            designer.Connections.Add(newConnection);
-            newConnection.Path.AddTo(designer);
-
             OnPropertyChanged(nameof(Connections));
             newConnection.Redraw();
             return newConnection;

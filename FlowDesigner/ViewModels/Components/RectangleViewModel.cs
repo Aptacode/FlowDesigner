@@ -9,14 +9,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         public override void AddTo(DesignerViewModel designer)
         {
-            designer.Rectangles.Add(this);
-            base.AddTo(designer);
+            designer.Add(this);
         }
 
         public override void RemoveFrom(DesignerViewModel designer)
         {
-            designer.Rectangles.Remove(this);
-            base.RemoveFrom(designer);
+            designer.Remove(this);
         }
     }
 }

@@ -40,13 +40,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         public bool IsConnectedTo(ConnectedComponentViewModel item) => Point1.Item == item || Point2.Item == item;
 
-        public void Break(DesignerViewModel designer)
-        {
-            Point1.Connections.Remove(this);
-            Point2.Connections.Remove(this);
-            designer.Connections.Remove(this);
-        }
-
         public void Deselect()
         {
             Point1.BorderColor = Color.Black;
@@ -63,9 +56,25 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         
         public void BringToFront(DesignerViewModel designer)
         {
-            Point1.BringToFront(designer);
-            Point2.BringToFront(designer);
-            Path.BringToFront(designer);
+            designer.BringToFront(Point1);
+            designer.BringToFront(Point2);
+            designer.BringToFront(Path);
+        }
+
+        public virtual void AddTo(DesignerViewModel designer)
+        {
+            Point1.Connections.Add(this);
+            Point2.Connections.Add(this);
+            Path.AddTo(designer);
+            designer.Add(this);
+        }
+
+        public virtual void RemoveFrom(DesignerViewModel designer)
+        {
+            Point1.Connections.Remove(this);
+            Point2.Connections.Remove(this);
+            Path.RemoveFrom(designer);
+            designer.Remove(this);
         }
     }
 }

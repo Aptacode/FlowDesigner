@@ -14,13 +14,13 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         public override void AddTo(DesignerViewModel designer)
         {
             designer.Selection = this;
-            base.AddTo(designer);
+            designer.Add(this);
         }
 
         public override void RemoveFrom(DesignerViewModel designer)
         {
             designer.Selection = null;
-            base.RemoveFrom(designer);
+            designer.Remove(this);
         }
     }
 }

@@ -29,13 +29,52 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public PathViewModel Path { get; set; }
         public readonly List<ConnectedComponentViewModel> SelectedItems = new List<ConnectedComponentViewModel>();
 
-        public List<ConnectedComponentViewModel> Items { get; set; } = new List<ConnectedComponentViewModel>();
-        public List<PointViewModel> Points { get; set; } = new List<PointViewModel>();
-        public List<RectangleViewModel> Rectangles { get; set; } = new List<RectangleViewModel>();
-        public List<PathViewModel> Paths { get; set; } = new List<PathViewModel>();
-        public List<ConnectionViewModel> Connections { get; set; } = new List<ConnectionViewModel>();
-        public List<BaseComponentViewModel> Components { get; set; } = new List<BaseComponentViewModel>();
+        readonly List<ConnectionViewModel> _connections = new List<ConnectionViewModel>();
+        readonly List<BaseComponentViewModel> _components = new List<BaseComponentViewModel>();
 
+        public IEnumerable<ConnectedComponentViewModel> Items => GetComponents<ConnectedComponentViewModel>();
+        public IEnumerable<PointViewModel> Points  => GetComponents<PointViewModel>();
+        public IEnumerable<RectangleViewModel> Rectangles => GetComponents<RectangleViewModel>();
+        public IEnumerable<PathViewModel> Paths  => GetComponents<PathViewModel>();
+        public IEnumerable<ConnectionViewModel> Connections => _connections;
+        public IEnumerable<BaseComponentViewModel> Components => _components;
+
+        public IEnumerable<TType> GetComponents<TType>() where TType : BaseComponentViewModel
+        {
+            if(ComponentsByType.TryGetValue(typeof(TType), out var components))
+            {
+                return components.Select(s => (TType)Convert.ChangeType(s, typeof(TType)));
+            }
+            return new List<TType>();
+        }
+
+        public void Add<TType>(TType component) where TType : BaseComponentViewModel
+        {
+            if (!ComponentsByType.TryGetValue(typeof(TType), out var components))
+            {
+                components = new List<BaseComponentViewModel>();
+            }
+            if (!components.Contains(component))
+            {
+                components.Add(component);
+                _components.Add(component);
+
+                ComponentsByType[typeof(TType)] = components;
+                OnPropertyChanged(nameof(Components));
+            }
+        }
+
+        public void Remove<TType>(TType component) where TType : BaseComponentViewModel
+        {
+            if (ComponentsByType.TryGetValue(typeof(TType), out var components) && components.Remove(component))
+            {
+                _components.Remove(component);
+                ComponentsByType[typeof(TType)] = components;
+                OnPropertyChanged(nameof(Components));
+            }
+        }
+
+        public Dictionary<Type, List<BaseComponentViewModel>> ComponentsByType { get; set; } = new Dictionary<Type, List<BaseComponentViewModel>>();
         #endregion
 
         #region Properties
@@ -57,6 +96,54 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             get => _movingItem;
             set => SetProperty(ref _movingItem, value);
         }
+        #endregion
+
+        #region Layering
+
+        public void BringToFront(BaseComponentViewModel component)
+        {
+            if (_components.Remove(component))
+            {
+                _components.Insert(0, component);
+                OnPropertyChanged(nameof(Components));
+            }
+        }
+
+        public void SendToBack(BaseComponentViewModel component)
+        {
+            if (_components.Remove(component))
+            {
+                _components.Add(component);
+                OnPropertyChanged(nameof(Components));
+            }
+        }
+
+        public void BringForward(BaseComponentViewModel component)
+        {
+            var index = _components.IndexOf(component);
+            if (index == 0)
+            {
+                return;
+            }
+
+            _components.RemoveAt(index);
+            _components.Insert(index - 1, component);
+            OnPropertyChanged(nameof(Components));
+        }
+
+        public void SendBackward(BaseComponentViewModel component)
+        {
+            var index = _components.IndexOf(component);
+            if (index == _components.Count - 1)
+            {
+                return;
+            }
+
+            _components.RemoveAt(index);
+            _components.Insert(index + 1, component);
+            OnPropertyChanged(nameof(Components));
+        }
+
         #endregion
 
         #region Events
@@ -91,20 +178,23 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         #endregion
 
-
-
         #region Commands
 
-        public void Add(BaseComponentViewModel component)
+        public void Add(ConnectionViewModel connection)
         {
-            Components.Add(component);
-            OnPropertyChanged(nameof(Components));
+            if (_connections.Contains(connection))
+            {
+                return;
+            }
+
+            _connections.Add(connection);
+            OnPropertyChanged(nameof(Connections));
         }
 
-        public void Remove(BaseComponentViewModel component)
+        public void Remove(ConnectionViewModel connection)
         {
-            Components.Remove(component);
-            OnPropertyChanged(nameof(Components));
+            _connections.Remove(connection);
+            OnPropertyChanged(nameof(Connections));
         }
 
         #endregion
@@ -128,7 +218,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             //Highlight Selected Items
             foreach (var item in SelectedItems)
             {
-                item.BringToFront(this);
+                BringToFront(item);
                 item.BorderColor = Color.Green;
             }
 
@@ -154,7 +244,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     foreach (var connection in value.Connections)
                     {
                         connection.Select();
-                        connection.Path.BringToFront(this);
+                        BringToFront(connection.Path);
                     }
                 }
 
@@ -172,10 +262,14 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             if (IsPressed("p"))
             {
                 var selectedPoint = Points.FirstOrDefault(p => p.Position == position);
-                if (!Points.Remove(selectedPoint))
+                if (selectedPoint == null)
                 {
                     var newPoint = this.CreatePoint(position);
                     newPoint.AddTo(this);
+                }
+                else
+                {
+                    selectedPoint.RemoveFrom(this);
                 }
 
                 return;
@@ -389,13 +483,10 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     break;
                 }
 
-                if (!connection.Point2.CollidesWith(position))
+                if (connection.Point2.CollidesWith(position))
                 {
-                    continue;
+                    selectedConnection = connection.Point2;
                 }
-
-                selectedConnection = connection.Point2;
-                break;
             }
 
             if (selectedConnection == null)

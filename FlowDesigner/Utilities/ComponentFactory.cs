@@ -26,7 +26,6 @@ namespace Aptacode.FlowDesigner.Core.Utilities
         public static ConnectionPointViewModel CreateConnectionPoint(this DesignerViewModel designer, ConnectedComponentViewModel connectedComponent)
         {
             var newConnectionPoint = new ConnectionPointViewModel(Guid.NewGuid(), connectedComponent);
-            connectedComponent.ConnectionPoints.Add(newConnectionPoint);
             newConnectionPoint.AddTo(designer);
             return newConnectionPoint;
         }   
@@ -34,10 +33,7 @@ namespace Aptacode.FlowDesigner.Core.Utilities
         public static ConnectionViewModel CreateConnection(this DesignerViewModel designer, ConnectionPointViewModel point1, ConnectionPointViewModel point2)
         {
             var newConnection = new ConnectionViewModel(designer, point1, point2);
-            designer.Connections.Add(newConnection);
-            point1.Connections.Add(newConnection);
-            point2.Connections.Add(newConnection);
-
+            newConnection.AddTo(designer);
             return newConnection;
         }
 

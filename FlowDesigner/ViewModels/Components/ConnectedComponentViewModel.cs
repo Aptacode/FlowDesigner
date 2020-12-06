@@ -18,24 +18,22 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         public override void AddTo(DesignerViewModel designer)
         {
-            designer.Items.Add(this);
-            foreach (var connectionPoint in this.ConnectionPoints.ToArray())
+            designer.Add(this);
+
+            foreach (var connectionPoint in ConnectionPoints.ToArray())
             {
                 connectionPoint.AddTo(designer);
             }
-
-            base.AddTo(designer);
         }
 
         public override void RemoveFrom(DesignerViewModel designer)
         {
+            designer.Remove(this);
+
             foreach (var connectionPoint in ConnectionPoints.ToArray())
             {
                 connectionPoint.RemoveFrom(designer);
             }
-
-            designer.Items.Remove(this);
-            base.RemoveFrom(designer);
         }
     }
 }
