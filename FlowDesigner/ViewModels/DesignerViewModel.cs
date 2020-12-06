@@ -218,8 +218,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             //Highlight Selected Items
             foreach (var item in SelectedItems)
             {
-                BringToFront(item);
                 item.BorderColor = Color.Green;
+                BringToFront(item);
             }
 
             //Highlight any connections for a selected item
@@ -496,32 +496,14 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
             if (IsPressed("c"))
             {
-                ConnectionPointViewModel? selectedConnectionPoint = null;
-                foreach (var connection in Connections)
-                {
-                    if (connection.Point1.CollidesWith(position))
-                    {
-                        selectedConnectionPoint = connection.Point1;
-                        break;
-                    }
-
-                    if (!connection.Point2.CollidesWith(position))
-                    {
-                        continue;
-                    }
-
-                    selectedConnectionPoint = connection.Point2;
-                    break;
-                }
+                ConnectionPointViewModel? selectedConnectionPoint = GetComponents<ConnectionPointViewModel>().FirstOrDefault(c => c.CollidesWith(position));
 
                 if (selectedConnectionPoint == null)
                 {
                     var collidingItem = Items.FirstOrDefault(c => c.CollidesWith(position));
                     if (collidingItem != null && collidingItem != _selectedConnectionPoint.Item)
                     {
-
                         selectedConnectionPoint = this.CreateConnectionPoint(collidingItem);
-                        selectedConnectionPoint.AddTo(this);
                         selectedConnectionPoint.Update(_selectedConnectionPoint.AnchorPoint);
                     }
                 }
