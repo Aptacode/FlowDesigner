@@ -1,22 +1,11 @@
 ﻿#nullable enable
 using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
 using System.Numerics;
-using System.Threading;
-using Aptacode.CSharp.Common.Utilities.Extensions;
-using Aptacode.CSharp.Common.Utilities.Mvvm;
-using Aptacode.FlowDesigner.Core.Enums;
-using Aptacode.FlowDesigner.Core.Extensions;
-using Aptacode.FlowDesigner.Core.Utilities;
-using Aptacode.FlowDesigner.Core.ViewModels.Components;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels
 {
     public class UserInteractionManager
     {
-
         #region State
 
         public bool ConnectionPointSelected { get; set; }
@@ -24,9 +13,10 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public Vector2 MouseDownPosition { get; set; }
 
         #endregion
+
         #region Interaction
 
-        #region Mouse 
+        #region Mouse
 
         public void MouseDown(Vector2 position)
         {

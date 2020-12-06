@@ -1,13 +1,12 @@
-﻿using Aptacode.FlowDesigner.Core.ViewModels;
-using Aptacode.FlowDesigner.Core.ViewModels.Components;
-using Aptacode.PathFinder.Geometry.Neighbours;
-using Aptacode.PathFinder.Maps;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Text;
 using System.Threading;
+using Aptacode.FlowDesigner.Core.ViewModels;
+using Aptacode.FlowDesigner.Core.ViewModels.Components;
+using Aptacode.PathFinder.Geometry.Neighbours;
+using Aptacode.PathFinder.Maps;
 
 namespace Aptacode.FlowDesigner.Core.Extensions
 {
@@ -15,7 +14,8 @@ namespace Aptacode.FlowDesigner.Core.Extensions
     {
         #region PathFinding
 
-        public static List<Vector2> GetPath(this DesignerViewModel designer, Vector2 startPoint, Vector2 endPoint, INeighbourFinder neighbourFinder = null)
+        public static List<Vector2> GetPath(this DesignerViewModel designer, Vector2 startPoint, Vector2 endPoint,
+            INeighbourFinder neighbourFinder = null)
         {
             var points = new List<Vector2>();
 
@@ -25,7 +25,7 @@ namespace Aptacode.FlowDesigner.Core.Extensions
 
                 foreach (var item in designer.ConnectedComponents.ToList())
                 {
-                    mapBuilder.AddObstacle(item.Position - Vector2.One, item.Size + Vector2.One * 2);
+                    mapBuilder.AddObstacle(item.Position - Vector2.One, item.Size + (Vector2.One * 2));
                 }
 
                 mapBuilder.SetStart(startPoint);
@@ -38,7 +38,8 @@ namespace Aptacode.FlowDesigner.Core.Extensions
                 }
 
                 var pathFinder =
-                    new PathFinder.Algorithm.PathFinder(mapResult.Map, neighbourFinder ?? DefaultNeighbourFinder.Straight(0.5f));
+                    new PathFinder.Algorithm.PathFinder(mapResult.Map,
+                        neighbourFinder ?? DefaultNeighbourFinder.Straight(0.5f));
 
                 points.AddRange(pathFinder.FindPath());
             }
@@ -55,11 +56,11 @@ namespace Aptacode.FlowDesigner.Core.Extensions
         #region Movement
 
         public static void Move(
-         this DesignerViewModel designer,
-         BaseShapeViewModel component,
-         Vector2 delta,
-         List<BaseShapeViewModel> movingComponents,
-         CancellationTokenSource cancellationToken)
+            this DesignerViewModel designer,
+            BaseShapeViewModel component,
+            Vector2 delta,
+            List<BaseShapeViewModel> movingComponents,
+            CancellationTokenSource cancellationToken)
         {
             var unselectedItems = designer.ConnectedComponents.Except(movingComponents);
             var newPosition = component.Position + delta;
@@ -87,7 +88,6 @@ namespace Aptacode.FlowDesigner.Core.Extensions
                 component.Position -= delta;
             }
         }
-
 
         #endregion
     }

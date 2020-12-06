@@ -78,19 +78,11 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             );
         }
 
-        public override void Move(DesignerViewModel designer, Vector2 delta)
-        {
+        public override void Move(DesignerViewModel designer, Vector2 delta) { }
 
-        }
+        public override void Resize(DesignerViewModel designer, Vector2 delta, ResizeDirection direction) { }
 
-        public override void Resize(DesignerViewModel designer, Vector2 delta, ResizeDirection direction)
-        {
-
-        }
-        public override void Resize(DesignerViewModel designer, Vector2 delta)
-        {
-
-        }
+        public override void Resize(DesignerViewModel designer, Vector2 delta) { }
 
         public override void AddTo(DesignerViewModel designer)
         {
@@ -101,7 +93,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         {
             designer.Remove(this);
         }
-
 
         #endregion
     }

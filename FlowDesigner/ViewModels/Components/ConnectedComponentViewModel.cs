@@ -1,7 +1,7 @@
-﻿using Aptacode.FlowDesigner.Core.Enums;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Aptacode.FlowDesigner.Core.Enums;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 {
@@ -28,6 +28,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             designer.Remove(this);
             ConnectionPoints.ForEach(c => c.RemoveFrom(designer));
         }
+
         public override void Resize(DesignerViewModel designer, Vector2 delta, ResizeDirection direction)
         {
             base.Resize(designer, delta, direction);

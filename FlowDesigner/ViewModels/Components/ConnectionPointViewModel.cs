@@ -1,9 +1,9 @@
-﻿using Aptacode.FlowDesigner.Core.Enums;
-using Aptacode.FlowDesigner.Core.Utilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Numerics;
+using Aptacode.FlowDesigner.Core.Enums;
+using Aptacode.FlowDesigner.Core.Utilities;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 {
@@ -13,16 +13,15 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         private Vector2 _anchorPointDelta;
         private float _connectionPointSize;
 
-        public ConnectionPointViewModel(Guid id, ConnectedComponentViewModel item) : this(id, item, new Vector2(item.TopRight.X, (float)Math.Floor(item.MidPoint.Y)))
-        {
-        }
+        public ConnectionPointViewModel(Guid id, ConnectedComponentViewModel item) : this(id, item,
+            new Vector2(item.TopRight.X, (float) Math.Floor(item.MidPoint.Y))) { }
 
         public ConnectionPointViewModel(Guid id, ConnectedComponentViewModel item, Vector2 direction) : base(id)
         {
             Item = item;
             Item.PropertyChanged += Item_PropertyChanged;
             ConnectionPointSize = 1.0f;
-            AnchorPoint = new Vector2(item.TopRight.X, (float)Math.Floor(item.MidPoint.Y));
+            AnchorPoint = new Vector2(item.TopRight.X, (float) Math.Floor(item.MidPoint.Y));
             Update(direction);
         }
 
@@ -60,27 +59,20 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
                 case nameof(ConnectedComponentViewModel.Size):
                     var tempAnchorPoint = AnchorPoint;
 
-                    var clampedX = Math.Clamp(AnchorPoint.X, Item.Position.X + 1, Item.Position.X + Item.Size.X -1);
-                    var clampedY = Math.Clamp(AnchorPoint.Y, Item.Position.Y + 1, Item.Position.Y + Item.Size.Y -1);
+                    var clampedX = Math.Clamp(AnchorPoint.X, Item.Position.X + 1, Item.Position.X + Item.Size.X - 1);
+                    var clampedY = Math.Clamp(AnchorPoint.Y, Item.Position.Y + 1, Item.Position.Y + Item.Size.Y - 1);
 
-                    switch (AnchorPointFace)
+                    tempAnchorPoint = AnchorPointFace switch
                     {
-                        case ResizeDirection.N:
-                            tempAnchorPoint = new Vector2(clampedX, Item.Position.Y);
-                            break;
-                        case ResizeDirection.E:
-                            tempAnchorPoint = new Vector2(Item.Position.X + Item.Size.X, clampedY);
-                            break;
-                        case ResizeDirection.S:
-                            tempAnchorPoint = new Vector2(clampedX, Item.Position.Y + Item.Size.Y);
-                            break;
-                        case ResizeDirection.W:
-                            tempAnchorPoint = new Vector2(Item.Position.X, clampedY);
-                            break;
-                    }
+                        ResizeDirection.N => new Vector2(clampedX, Item.Position.Y),
+                        ResizeDirection.E => new Vector2(Item.Position.X + Item.Size.X, clampedY),
+                        ResizeDirection.S => new Vector2(clampedX, Item.Position.Y + Item.Size.Y),
+                        ResizeDirection.W => new Vector2(Item.Position.X, clampedY),
+                        _ => tempAnchorPoint
+                    };
 
                     AnchorPointDelta = Item.MidPoint - tempAnchorPoint;
-                    if(_anchorPoint != tempAnchorPoint)
+                    if (_anchorPoint != tempAnchorPoint)
                     {
                         _anchorPoint = tempAnchorPoint;
                         Redraw();
@@ -121,12 +113,14 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             }
 
             AnchorPointDelta = Item.MidPoint - tempAnchorPoint;
-            if (_anchorPoint != tempAnchorPoint)
+            if (_anchorPoint == tempAnchorPoint)
             {
-                _anchorPoint = tempAnchorPoint;
-                Redraw();
-                AnchorPoint = tempAnchorPoint;
+                return;
             }
+
+            _anchorPoint = tempAnchorPoint;
+            Redraw();
+            AnchorPoint = tempAnchorPoint;
         }
 
         public (float m, float c) ToLineEquation(Vector2 start, Vector2 end)
@@ -241,20 +235,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             Connections.ForEach(c => c.Redraw());
         }
 
-        public override void Move(DesignerViewModel designer, Vector2 delta)
-        {
-
-        }
+        public override void Move(DesignerViewModel designer, Vector2 delta) { }
 
 
-        public override void Resize(DesignerViewModel designer, Vector2 delta, ResizeDirection direction)
-        {
-            
-        }
-        public override void Resize(DesignerViewModel designer, Vector2 delta)
-        {
+        public override void Resize(DesignerViewModel designer, Vector2 delta, ResizeDirection direction) { }
 
-        }
+        public override void Resize(DesignerViewModel designer, Vector2 delta) { }
 
         public override void AddTo(DesignerViewModel designer)
         {
@@ -289,7 +275,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         {
             Connections.ForEach(c => c.Deselect(designer));
             base.Deselect(designer);
-
         }
     }
 }

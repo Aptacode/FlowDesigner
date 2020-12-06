@@ -1,10 +1,10 @@
-﻿using System;
-using System.Drawing;
+﻿using System.Drawing;
 using Aptacode.CSharp.Common.Utilities.Mvvm;
 using Aptacode.FlowDesigner.Core.Enums;
 using Aptacode.FlowDesigner.Core.Extensions;
+using Aptacode.FlowDesigner.Core.ViewModels.Components;
 
-namespace Aptacode.FlowDesigner.Core.ViewModels.Components
+namespace Aptacode.FlowDesigner.Core.ViewModels
 {
     public class ConnectionViewModel : BindableBase
     {
