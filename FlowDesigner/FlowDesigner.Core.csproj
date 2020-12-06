@@ -27,7 +27,7 @@
 
   <ItemGroup>
     <PackageReference Include="Aptacode.CSharp.Common.Utilities" Version="1.0.0.30" />
-    <PackageReference Include="Aptacode.PathFinder" Version="1.0.4-CI-20201204-190647" />
+    <PackageReference Include="Aptacode.PathFinder" Version="1.0.4-CI-20201205-193734" />
   </ItemGroup>
 
 </Project>
