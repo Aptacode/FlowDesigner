@@ -27,7 +27,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         #region Components
         public SelectionViewModel Selection { get; set; }
         public PathViewModel Path { get; set; }
-        public readonly List<ConnectedComponentViewModel> SelectedItems = new List<ConnectedComponentViewModel>();
+        public readonly HashSet<ConnectedComponentViewModel> SelectedItems = new HashSet<ConnectedComponentViewModel>();
 
         readonly List<ConnectionViewModel> _connections = new List<ConnectionViewModel>();
         readonly List<BaseComponentViewModel> _components = new List<BaseComponentViewModel>();
@@ -321,10 +321,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             if (Selection.IsShown)
             {
                 Selection.IsShown = false;
-
-                SelectedItems.AddRange(Items.Where(i =>
-                    i.CollidesWith(Selection.PositionAndMargin, Selection.SizeAndMargin)));
-
+                SelectedItems.AddRange(Items.Where(i => i.CollidesWith(Selection.Position, Selection.Size)));
                 UpdateSelectedItems();
             }
         }
@@ -334,17 +331,14 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             var selectedItem = Items.FirstOrDefault(item => item.CollidesWith(position));
 
             //If no item was selected
-            if (selectedItem == default && NothingPressed)
-            {
-                ClearSelectedItems();
-                Selection.IsShown = true;
-                Selection.Position = position;
-                Selection.Size = Vector2.Zero;
-                return;
-            }
-
             if (selectedItem == null)
             {
+                ClearSelectedItems();
+
+                if (NothingPressed)
+                {
+                    Selection.Show(position);
+                }
                 return;
             }
 
@@ -360,28 +354,15 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             if (ResizeDirection != ResizeDirection.None)
             {
                 ClearSelectedItems();
-                SelectedItems.Add(selectedItem);
-                LastMousePosition = position;
             }
-
-            //If the item was not yet selected
-            else if (!SelectedItems.Contains(selectedItem))
-            {
-                SelectedItems.Add(selectedItem);
-                if (NothingPressed)
-                {
-                    LastMousePosition = position;
-                    MovingItem = true;
-                }
-            }
-
             //If the center of the item was selected -> Move the selected items
             else
             {
-                LastMousePosition = position;
                 MovingItem = true;
             }
 
+            SelectedItems.Add(selectedItem);
+            LastMousePosition = position;
             UpdateSelectedItems();
         }
 
@@ -461,20 +442,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         private void ClickConnection(Vector2 position)
         {
-            ConnectionPointViewModel? selectedConnection = null;
-            foreach (var connection in Connections)
-            {
-                if (connection.Point1.CollidesWith(position))
-                {
-                    selectedConnection = connection.Point1;
-                    break;
-                }
-
-                if (connection.Point2.CollidesWith(position))
-                {
-                    selectedConnection = connection.Point2;
-                }
-            }
+            ConnectionPointViewModel? selectedConnection = GetComponents<ConnectionPointViewModel>().FirstOrDefault(c => c.CollidesWith(position));
 
             if (selectedConnection == null)
             {
@@ -509,16 +477,13 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 {
                     Path.ClearPoints();
                     var startPoint = _selectedConnectionPoint.GetOffset(_selectedConnectionPoint.Item.Margin);
-                    var endPoint = position;
-                    var path = this.GetPath(startPoint, endPoint);
+                    var path = this.GetPath(startPoint, position);
                     Path.AddPoints(path);
                 }
             }
             else
             {
-                _selectedConnectionPoint.UpdateAnchorPointDelta(position);
-
-                _selectedConnectionPoint.Redraw();
+                _selectedConnectionPoint.Update(position);
             }
         }
 
@@ -557,7 +522,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
                         selectedConnectionPoint = this.CreateConnectionPoint(collidingItem);
                         selectedConnectionPoint.AddTo(this);
-                        selectedConnectionPoint.UpdateAnchorPointDelta(_selectedConnectionPoint.AnchorPoint);
+                        selectedConnectionPoint.Update(_selectedConnectionPoint.AnchorPoint);
                     }
                 }
 

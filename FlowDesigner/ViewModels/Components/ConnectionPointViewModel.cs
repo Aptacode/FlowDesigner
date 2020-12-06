@@ -18,7 +18,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             Item = item;
             Item.PropertyChanged += Item_PropertyChanged;
             ConnectionPointSize = 1.0f;
-            UpdateAnchorPointDelta(new Vector2(Item.TopRight.X, (float) Math.Floor(Item.MidPoint.Y)));
+            Update(new Vector2(Item.TopRight.X, (float) Math.Floor(Item.MidPoint.Y)));
         }
 
         public List<ConnectionViewModel> Connections { get; set; } = new List<ConnectionViewModel>();
@@ -86,7 +86,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             }
         }
 
-        public void UpdateAnchorPointDelta(Vector2 mousePosition)
+        public void Update(Vector2 mousePosition)
         {
             var tempAnchorPoint = AnchorPoint;
 

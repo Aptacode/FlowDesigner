@@ -40,5 +40,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
                     : startPosition;
             }
         }
+
+        public void Show(Vector2 position)
+        {
+            IsShown = true;
+            Position = position;
+            Size = Vector2.Zero;
+        }
     }
 }
