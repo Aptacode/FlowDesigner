@@ -246,6 +246,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                         connection.Select();
                         BringToFront(connection.Path);
                     }
+
+                    BringToFront(value);
                 }
 
                 SetProperty(ref _selectedConnectionPoint, value);
@@ -321,8 +323,16 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             if (Selection.IsShown)
             {
                 Selection.IsShown = false;
-                SelectedItems.AddRange(Items.Where(i => i.CollidesWith(Selection.Position, Selection.Size)));
-                UpdateSelectedItems();
+                var selectedItems = Items.Where(i => i.CollidesWith(Selection.Position, Selection.Size));
+                if(!selectedItems.Any() && IsPressed("n"))
+                {
+                    this.CreateConnectedComponent(string.Empty, Selection.Position, Selection.Size);
+                }
+                else
+                {
+                    SelectedItems.AddRange(selectedItems);
+                    UpdateSelectedItems();
+                }
             }
         }
 
@@ -442,20 +452,22 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         private void ClickConnection(Vector2 position)
         {
-            ConnectionPointViewModel? selectedConnection = GetComponents<ConnectionPointViewModel>().FirstOrDefault(c => c.CollidesWith(position));
+            ConnectionPointViewModel? selectedConnectionPoint = GetComponents<ConnectionPointViewModel>().FirstOrDefault(c => c.CollidesWith(position));
 
-            if (selectedConnection == null)
+            if (selectedConnectionPoint == null && IsPressed("c"))
             {
+                var selectedItem = GetComponents<ConnectedComponentViewModel>().FirstOrDefault(c => c.CollidesWith(position));
+                SelectedConnectionPoint = this.CreateConnectionPoint(selectedItem);
                 return;
             }
 
             if (IsPressed("d"))
             {
-                selectedConnection.RemoveFrom(this);
+                selectedConnectionPoint.RemoveFrom(this);
             }
             else
             {
-                SelectedConnectionPoint = selectedConnection;
+                SelectedConnectionPoint = selectedConnectionPoint;
             }
         }
 
@@ -478,6 +490,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     Path.ClearPoints();
                     var startPoint = _selectedConnectionPoint.GetOffset(_selectedConnectionPoint.Item.Margin);
                     var path = this.GetPath(startPoint, position);
+              
+                    path.Add(_selectedConnectionPoint.GetOffset(_selectedConnectionPoint.ConnectionPointSize));
                     Path.AddPoints(path);
                 }
             }

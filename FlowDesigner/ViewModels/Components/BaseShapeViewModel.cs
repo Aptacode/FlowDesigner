@@ -53,8 +53,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         public virtual bool CollidesWith(Vector2 position) =>
             CollisionsAllowed &&
-            position.X >= Position.X && position.X <= Position.X + Size.X &&
-            position.Y >= Position.Y && position.Y <= Position.Y + Size.Y;
+            position.X >= Position.X - Margin && position.X <= Position.X + Size.X + Margin &&
+            position.Y >= Position.Y - Margin && position.Y <= Position.Y + Size.Y + Margin;
 
         public virtual bool CollidesWithEdge(Vector2 position) =>
             CollisionsAllowed &&
