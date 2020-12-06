@@ -249,7 +249,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     foreach (var connection in value.Connections)
                     {
                         connection.Select();
-                        BringToFront(connection.Path);
+                        connection.BringToFront(this);
                     }
 
                     BringToFront(value);
