@@ -32,11 +32,8 @@ namespace Aptacode.FlowDesigner.Blazor.Components
 
         private void Item_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "Position" || e.PropertyName == "Size")
-            {
-                Refresh();
-                InvokeAsync(StateHasChanged);
-            }
+            Refresh();
+            InvokeAsync(StateHasChanged);
         }
 
         public void Refresh()

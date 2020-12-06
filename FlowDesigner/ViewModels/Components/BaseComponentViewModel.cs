@@ -11,7 +11,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         private readonly Color _fillColor = Color.White;
         private Color _borderColor = Color.Black;
         private float _borderThickness;
-        private bool _isShown;
+        private bool _isShown = true;
 
         protected BaseComponentViewModel(Guid id)
         {

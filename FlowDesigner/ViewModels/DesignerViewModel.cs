@@ -22,11 +22,16 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             Height = height;
             Selection = new SelectionViewModel(Guid.NewGuid(), Vector2.Zero, Vector2.Zero);
             Path = new PathViewModel();
+            MousePoint = new PointViewModel(Guid.NewGuid(), Vector2.Zero);
+            MousePoint.IsShown = false;
+
             ResizeDirection = ResizeDirection.None;
         }
         #region Components
         public SelectionViewModel Selection { get; set; }
         public PathViewModel Path { get; set; }
+        public PointViewModel MousePoint { get; set; }
+
         public readonly HashSet<ConnectedComponentViewModel> SelectedItems = new HashSet<ConnectedComponentViewModel>();
 
         readonly List<ConnectionViewModel> _connections = new List<ConnectionViewModel>();
@@ -494,16 +499,25 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
               
                     path.Add(_selectedConnectionPoint.GetOffset(_selectedConnectionPoint.ConnectionPointSize));
                     Path.AddPoints(path);
+                    MousePoint.Position = position;
+                    MousePoint.IsShown = true;
+                    Path.IsShown = true;
                 }
             }
             else
             {
+                MousePoint.IsShown = false;
+                Path.IsShown = false;
                 _selectedConnectionPoint.Update(position);
             }
         }
 
         private void ReleaseConnection(Vector2 position)
         {
+            MousePoint.IsShown = false;
+            Path.IsShown = false; 
+            Path.ClearPoints();
+
             if (_selectedConnectionPoint == null)
             {
                 return;
@@ -532,10 +546,9 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 {
                     SelectedConnectionPoint.RemoveFrom(this);
                 }
-
-                Path.ClearPoints();
             }
 
+         
 
             foreach (var connection in _selectedConnectionPoint.Connections)
             {
