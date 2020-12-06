@@ -457,7 +457,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             if (selectedConnectionPoint == null && IsPressed("c"))
             {
                 var selectedItem = GetComponents<ConnectedComponentViewModel>().FirstOrDefault(c => c.CollidesWith(position));
-                SelectedConnectionPoint = this.CreateConnectionPoint(selectedItem);
+                SelectedConnectionPoint = this.CreateConnectionPoint(selectedItem, position);
                 return;
             }
 
@@ -485,6 +485,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
             if (IsPressed("c"))
             {
+                SelectedConnectionPoint.Update(position);
                 if (!Items.Any(i => i.CollidesWith(position)))
                 {
                     Path.ClearPoints();
@@ -517,7 +518,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     var collidingItem = Items.FirstOrDefault(c => c.CollidesWith(position));
                     if (collidingItem != null && collidingItem != _selectedConnectionPoint.Item)
                     {
-                        selectedConnectionPoint = this.CreateConnectionPoint(collidingItem);
+                        selectedConnectionPoint = this.CreateConnectionPoint(collidingItem, position);
                         selectedConnectionPoint.Update(_selectedConnectionPoint.AnchorPoint);
                     }
                 }
@@ -525,6 +526,11 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 if (SelectedConnectionPoint != selectedConnectionPoint && selectedConnectionPoint != null)
                 {
                     _selectedConnectionPoint.Connect(this, selectedConnectionPoint);
+                }
+
+                if(SelectedConnectionPoint != null && SelectedConnectionPoint.Connections.Count == 0)
+                {
+                    SelectedConnectionPoint.RemoveFrom(this);
                 }
 
                 Path.ClearPoints();

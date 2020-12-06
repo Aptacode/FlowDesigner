@@ -1,9 +1,7 @@
 ﻿using Aptacode.FlowDesigner.Core.ViewModels;
 using Aptacode.FlowDesigner.Core.ViewModels.Components;
 using System;
-using System.Collections.Generic;
 using System.Numerics;
-using System.Text;
 
 namespace Aptacode.FlowDesigner.Core.Utilities
 {
@@ -23,13 +21,20 @@ namespace Aptacode.FlowDesigner.Core.Utilities
             return newPoint;
         }     
         
+        public static ConnectionPointViewModel CreateConnectionPoint(this DesignerViewModel designer, ConnectedComponentViewModel connectedComponent, Vector2 direction)
+        {
+            var newConnectionPoint = new ConnectionPointViewModel(Guid.NewGuid(), connectedComponent, direction);
+            newConnectionPoint.AddTo(designer);
+            return newConnectionPoint;
+        }
+
         public static ConnectionPointViewModel CreateConnectionPoint(this DesignerViewModel designer, ConnectedComponentViewModel connectedComponent)
         {
             var newConnectionPoint = new ConnectionPointViewModel(Guid.NewGuid(), connectedComponent);
             newConnectionPoint.AddTo(designer);
             return newConnectionPoint;
-        }   
-        
+        }
+
         public static ConnectionViewModel CreateConnection(this DesignerViewModel designer, ConnectionPointViewModel point1, ConnectionPointViewModel point2)
         {
             var newConnection = new ConnectionViewModel(designer, point1, point2);

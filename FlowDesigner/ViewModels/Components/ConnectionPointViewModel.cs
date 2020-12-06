@@ -13,12 +13,17 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         private Vector2 _anchorPointDelta;
         private float _connectionPointSize;
 
-        public ConnectionPointViewModel(Guid id, ConnectedComponentViewModel item) : base(id)
+        public ConnectionPointViewModel(Guid id, ConnectedComponentViewModel item) : this(id, item, new Vector2(item.TopRight.X, (float)Math.Floor(item.MidPoint.Y)))
+        {
+        }
+
+        public ConnectionPointViewModel(Guid id, ConnectedComponentViewModel item, Vector2 direction) : base(id)
         {
             Item = item;
             Item.PropertyChanged += Item_PropertyChanged;
             ConnectionPointSize = 1.0f;
-            Update(new Vector2(Item.TopRight.X, (float) Math.Floor(Item.MidPoint.Y)));
+            AnchorPoint = new Vector2(item.TopRight.X, (float)Math.Floor(item.MidPoint.Y));
+            Update(direction);
         }
 
         public List<ConnectionViewModel> Connections { get; set; } = new List<ConnectionViewModel>();
