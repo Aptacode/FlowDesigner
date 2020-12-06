@@ -18,6 +18,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         public PathViewModel(Guid id, IEnumerable<Vector2> points) : base(id)
         {
             AddPoints(points);
+            CollisionsAllowed = true;
         }
 
         public string Path
@@ -62,7 +63,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         #region Collision
 
         public virtual bool CollidesWith(Vector2 position) =>
-            CollisionsAllowed && _points.Any(p => p == position);
+           CollisionsAllowed && _points.Any(p => Math.Abs(position.X - p.X) < Constants.Tolerance && Math.Abs(position.Y - p.Y) < Constants.Tolerance);
 
         public virtual bool CollidesWithEdge(Vector2 position) => CollidesWith(position);
 
