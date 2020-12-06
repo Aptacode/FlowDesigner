@@ -22,5 +22,23 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             designer.Selection = null;
             designer.Remove(this);
         }
+
+        public void Adjust(Vector2 startPosition, Vector2 currentPosition)
+        {
+            Size = Vector2.Abs(startPosition - currentPosition);
+
+            if (currentPosition.X <= startPosition.X)
+            {
+                Position = currentPosition.Y <= startPosition.Y
+                    ? currentPosition
+                    : new Vector2(currentPosition.X, startPosition.Y);
+            }
+            else
+            {
+                Position = currentPosition.Y <= startPosition.Y
+                    ? new Vector2(startPosition.X, currentPosition.Y)
+                    : startPosition;
+            }
+        }
     }
 }

@@ -302,20 +302,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
             if (Selection.IsShown)
             {
-                Selection.Size = Vector2.Abs(MouseDownPosition - position);
-
-                if (position.X <= MouseDownPosition.X)
-                {
-                    Selection.Position = position.Y <= MouseDownPosition.Y
-                        ? position
-                        : new Vector2(position.X, MouseDownPosition.Y);
-                }
-                else
-                {
-                    Selection.Position = position.Y <= MouseDownPosition.Y
-                        ? new Vector2(MouseDownPosition.X, position.Y)
-                        : MouseDownPosition;
-                }
+                Selection.Adjust(MouseDownPosition, position);
             }
         }
 

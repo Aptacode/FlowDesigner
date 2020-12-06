@@ -167,7 +167,13 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         public override void Move(DesignerViewModel designer, Vector2 delta)
         {
-
+            Position += delta;
         }
+
+        public override void Resize(DesignerViewModel designer, Vector2 delta)
+        {
+            Size += delta;
+        }
+
     }
 }
