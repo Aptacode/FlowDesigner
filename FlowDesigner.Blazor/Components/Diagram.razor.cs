@@ -87,12 +87,12 @@ namespace Aptacode.FlowDesigner.Blazor.Components
         {
             
             _lastPositionUpdate = _position = e.ToPosition();
-            Designer.MouseDown(_position);
+            Designer.Interactor.MouseDown(_position);
         }
 
         public void MouseUp(MouseEventArgs e)
         {
-            Designer.MouseUp(e.ToPosition());
+            Designer.Interactor.MouseUp(e.ToPosition());
         }
 
         public void MouseOut(MouseEventArgs e) { }
@@ -103,18 +103,18 @@ namespace Aptacode.FlowDesigner.Blazor.Components
             if(_lastPositionUpdate != _position)
             {
                 _lastPositionUpdate = _position;
-                Designer.MouseMove(_position);
+                Designer.Interactor.MouseMove(_position);
             }
             
         }
 
         public void KeyDown(KeyboardEventArgs e)
         {
-            Designer.KeyDown(e.Key);
+            Designer.Interactor.KeyDown(e.Key);
         }
         public void KeyUp(KeyboardEventArgs e)
         {
-            Designer.KeyUp(e.Key);
+            Designer.Interactor.KeyUp(e.Key);
         }
     }
 }

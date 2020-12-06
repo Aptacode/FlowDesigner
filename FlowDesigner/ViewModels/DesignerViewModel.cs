@@ -16,19 +16,33 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 {
     public class DesignerViewModel : BindableBase
     {
+        public UserInteractionManager Interactor { get; set; } = new UserInteractionManager();
+
         public DesignerViewModel(int width, int height)
         {
             Width = width;
             Height = height;
             Selection = new SelectionViewModel(Guid.NewGuid(), Vector2.Zero, Vector2.Zero);
+            CreateSelection = new SelectionViewModel(Guid.NewGuid(), Vector2.Zero, Vector2.Zero);
+            CreateSelection.BorderColor = Color.Green;
+
             Path = new PathViewModel();
             MousePoint = new PointViewModel(Guid.NewGuid(), Vector2.Zero);
             MousePoint.IsShown = false;
 
             ResizeDirection = ResizeDirection.None;
+
+            Interactor.AddPoint += UserInteractionManager_AddPoint;
+            Interactor.CreateAt += UserInteractionManager_CreateAt;
+            Interactor.DeleteAt += UserInteractionManager_DeleteAt;
+            Interactor.SelectAt += UserInteractionManager_SelectAt;
+            Interactor.MouseMoved += UserInteractionManager_MouseMoved;
+            Interactor.MouseReleased += UserInteractionManager_MouseReleased;
         }
+
         #region Components
         public SelectionViewModel Selection { get; set; }
+        public SelectionViewModel CreateSelection { get; set; }
         public PathViewModel Path { get; set; }
         public PointViewModel MousePoint { get; set; }
 
@@ -37,7 +51,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         readonly List<ConnectionViewModel> _connections = new List<ConnectionViewModel>();
         readonly List<BaseComponentViewModel> _components = new List<BaseComponentViewModel>();
 
-        public IEnumerable<ConnectedComponentViewModel> Items => GetComponents<ConnectedComponentViewModel>();
+        public IEnumerable<ConnectedComponentViewModel> ConnectedComponents => GetComponents<ConnectedComponentViewModel>();
+        public IEnumerable<ConnectionPointViewModel> ConnectionPoints => GetComponents<ConnectionPointViewModel>();
         public IEnumerable<PointViewModel> Points  => GetComponents<PointViewModel>();
         public IEnumerable<RectangleViewModel> Rectangles => GetComponents<RectangleViewModel>();
         public IEnumerable<PathViewModel> Paths  => GetComponents<PathViewModel>();
@@ -85,8 +100,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         #region Properties
         public int Width { get; set; }
         public int Height { get; set; }
-        private Vector2 LastMousePosition { get; set; }
-        private Vector2 MouseDownPosition { get; set; }
 
         private ResizeDirection _resizingItem;
         public ResizeDirection ResizeDirection
@@ -158,27 +171,129 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         #endregion
 
-        #region Keyboard
 
-        public string? KeyPressed;
-        public bool ControlPressed => KeyPressed == "Control";
-        public bool IsPressed(string key) => string.Equals(KeyPressed, key, StringComparison.OrdinalIgnoreCase);
-        public bool NothingPressed => string.IsNullOrEmpty(KeyPressed);
+        #region Interactions
 
-        public void KeyDown(string key)
+        private void UserInteractionManager_MouseReleased(object sender, Vector2 e)
         {
-            KeyPressed = key;
-        }
-
-        public void KeyUp(string key)
-        {
-            if (ControlPressed)
+            if (SelectedItems.Count > 0)
             {
-                KeyPressed = null;
-                ReleaseItem();
+                ItemReleased();
             }
 
-            KeyPressed = null;
+            if (_selectedConnectionPoint != null)
+            {
+                ConnectionReleased(e);
+            }
+
+            if (Selection.IsShown)
+            {
+                SelectionReleased();
+            }
+
+            if (CreateSelection.IsShown)
+            {
+                CreateSelectionReleased();
+            }
+            
+        }
+
+        private void UserInteractionManager_MouseMoved(object sender, Vector2 e)
+        {
+            if (SelectedItems.Count > 0)
+            {
+                if (MovingItem)
+                {
+                    MoveComponent(e);
+                }
+                else if (ResizeDirection != ResizeDirection.None)
+                {
+                    ResizeItem(e);
+                }
+            }
+
+            if (_selectedConnectionPoint != null)
+            {
+                MoveConnection(e);
+            }
+
+            if (Selection.IsShown)
+            {
+                Selection.Adjust(Interactor.MouseDownPosition, e);
+            }
+
+            if (CreateSelection.IsShown)
+            {
+                CreateSelection.Adjust(Interactor.MouseDownPosition, e);
+            }
+        }
+
+        private void UserInteractionManager_SelectAt(object sender, Vector2 e)
+        {
+            var selectedComponent = ConnectedComponents.FirstOrDefault(i => i.CollidesWith(e));
+            var selectedComponentPoint = ConnectionPoints.FirstOrDefault(i => i.CollidesWith(e));
+
+            if (selectedComponentPoint != null)
+            {
+                SelectedConnectionPoint = selectedComponentPoint;
+            }
+            else if (selectedComponent != null)
+            {
+                ClickComponent(selectedComponent, e);
+            }
+            else
+            {
+                StartSelection(e);
+            }
+        }
+        private void UserInteractionManager_DeleteAt(object sender, Vector2 e)
+        {
+            var selectedComponent = ConnectedComponents.FirstOrDefault(i => i.CollidesWith(e));
+            var selectedComponentPoint = ConnectionPoints.FirstOrDefault(i => i.CollidesWith(e));
+            var selectedConnection = Connections.FirstOrDefault(c => c.Path.CollidesWith(e));
+
+            if (selectedComponentPoint == null)
+            {
+                selectedComponent?.RemoveFrom(this);
+                selectedConnection?.RemoveFrom(this);
+            }
+            else
+            {
+                selectedComponentPoint?.RemoveFrom(this);
+            }
+        }
+
+        private void UserInteractionManager_CreateAt(object sender, Vector2 e)
+        {
+            var selectedComponent = ConnectedComponents.FirstOrDefault(i => i.CollidesWith(e));
+            var selectedComponentPoint = ConnectionPoints.FirstOrDefault(i => i.CollidesWith(e));
+
+            if (selectedComponentPoint != null)
+            {
+                SelectedConnectionPoint = selectedComponentPoint;
+            }
+            else if (selectedComponent != null)
+            {
+                SelectedConnectionPoint = this.CreateConnectionPoint(selectedComponent, e);
+            }
+            else
+            {
+                StartCreateSelection(e);
+            }
+        }
+
+        private void UserInteractionManager_AddPoint(object sender, Vector2 position)
+        {
+            var selectedPoint = Points.FirstOrDefault(p => p.Position == position);
+            if (selectedPoint == null)
+            {
+                var newPoint = this.CreatePoint(position);
+                newPoint.AddTo(this);
+            }
+            else
+            {
+                selectedPoint.RemoveFrom(this);
+            }
         }
 
         #endregion
@@ -214,25 +329,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public void UpdateSelectedItems()
         {
-            //Remove item highlight
-            foreach (var item in Items)
-            {
-                item.BorderColor = Color.Black;
-            }
-
-            //Highlight Selected Items
-            foreach (var item in SelectedItems)
-            {
-                item.BorderColor = Color.Green;
-                BringToFront(item);
-            }
-
-            //Highlight any connections for a selected item
-            foreach (var connection in Connections.Where(connection => SelectedItems.Any(connection.IsConnectedTo)))
-            {
-                connection.Select();
-                connection.BringToFront(this);
-            }
+            ConnectedComponents.ToList().ForEach(c => c.Deselect(this));
+            SelectedItems.ToList().ForEach(c => c.Select(this));
 
             SelectedItemChanged?.Invoke(this, SelectedItems);
         }
@@ -244,184 +342,103 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             get => _selectedConnectionPoint;
             set
             {
-                if (value != null)
-                {
-                    foreach (var connection in value.Connections)
-                    {
-                        connection.Select();
-                        connection.BringToFront(this);
-                    }
-
-                    BringToFront(value);
-                }
+                value?.Select(this);
 
                 SetProperty(ref _selectedConnectionPoint, value);
                 SelectedConnectionChanged?.Invoke(this, _selectedConnectionPoint);
             }
         }
 
-
-        public void MouseDown(Vector2 position)
+        private void SelectionReleased()
         {
-            MouseDownPosition = position;
+            Selection.IsShown = false;
+            var selectedItems = ConnectedComponents.Where(i => i.CollidesWith(Selection.Position, Selection.Size));
+            SelectedItems.AddRange(selectedItems);
+            UpdateSelectedItems();
+        }
 
-            //Interact with Points
-            if (IsPressed("p"))
+        private void CreateSelectionReleased()
+        {
+            CreateSelection.IsShown = false;
+            var collidingItems = ConnectedComponents.Where(i => i.CollidesWith(CreateSelection.Position, CreateSelection.Size));
+            if (!collidingItems.Any())
             {
-                var selectedPoint = Points.FirstOrDefault(p => p.Position == position);
-                if (selectedPoint == null)
-                {
-                    var newPoint = this.CreatePoint(position);
-                    newPoint.AddTo(this);
-                }
-                else
-                {
-                    selectedPoint.RemoveFrom(this);
-                }
-
-                return;
-            }
-
-            //Interact with Connections
-            if (_selectedConnectionPoint == null || IsPressed("c"))
-            {
-                ClickConnection(position);
-            }
-
-            //Interact with Items
-            if (_selectedConnectionPoint == null)
-            {
-                ClickItem(position);
+                //Create a new item
+                this.CreateConnectedComponent(string.Empty, CreateSelection.Position, CreateSelection.Size);
             }
         }
 
-        public void MouseMove(Vector2 position)
+        private void StartSelection(Vector2 position)
         {
-            if (SelectedItems != null)
-            {
-                MoveItem(position);
-            }
-
-            if (_selectedConnectionPoint != null)
-            {
-                MoveConnection(position);
-            }
-
-            if (Selection.IsShown)
-            {
-                Selection.Adjust(MouseDownPosition, position);
-            }
+            ClearSelectedItems();
+            Selection.Show(position);
         }
 
-        public void MouseUp(Vector2 position)
+        private void StartCreateSelection(Vector2 position)
         {
-            if (SelectedItems.Count > 0)
-            {
-                ReleaseItem();
-            }
-
-            if (_selectedConnectionPoint != null)
-            {
-                ReleaseConnection(position);
-            }
-
-            if (Selection.IsShown)
-            {
-                Selection.IsShown = false;
-                var selectedItems = Items.Where(i => i.CollidesWith(Selection.Position, Selection.Size));
-                if(!selectedItems.Any() && IsPressed("n"))
-                {
-                    this.CreateConnectedComponent(string.Empty, Selection.Position, Selection.Size);
-                }
-                else
-                {
-                    SelectedItems.AddRange(selectedItems);
-                    UpdateSelectedItems();
-                }
-            }
+            ClearSelectedItems();
+            CreateSelection.Show(position);
         }
 
-        private void ClickItem(Vector2 position)
+        private void StartResizing(ConnectedComponentViewModel component)
         {
-            var selectedItem = Items.FirstOrDefault(item => item.CollidesWith(position));
+            ClearSelectedItems();
+            SelectedItems.Add(component);
+            UpdateSelectedItems();
+        }
+        private void StartMoving(ConnectedComponentViewModel component)
+        {
+            MovingItem = true;
+            SelectedItems.Add(component);
+            UpdateSelectedItems();
+        }
 
-            //If no item was selected
-            if (selectedItem == null)
-            {
-                ClearSelectedItems();
-
-                if (NothingPressed)
-                {
-                    Selection.Show(position);
-                }
-                return;
-            }
-
-            if (IsPressed("d"))
-            {
-                selectedItem.RemoveFrom(this);
-                KeyPressed = null;
-                return;
-            }
-
+        private void ClickComponent(ConnectedComponentViewModel component, Vector2 position)
+        {
             //If the border of the item was selected -> resize the item
-            ResizeDirection = selectedItem.GetCollidingEdge(position);
-            if (ResizeDirection != ResizeDirection.None)
+            ResizeDirection = component.GetCollidingEdge(position);
+            if (ResizeDirection == ResizeDirection.None)
             {
-                ClearSelectedItems();
+                StartMoving(component);
             }
             //If the center of the item was selected -> Move the selected items
             else
             {
-                MovingItem = true;
+                StartResizing(component);
             }
-
-            SelectedItems.Add(selectedItem);
-            LastMousePosition = position;
-            UpdateSelectedItems();
         }
 
-        private void MoveItem(Vector2 position)
+        private void MoveComponent(Vector2 position)
         {
-            if (MovingItem)
+            var delta = position - Interactor.LastMousePosition;
+            var cancellationTokenSource = new CancellationTokenSource();
+            var movingItems = SelectedItems.OfType<BaseShapeViewModel>().ToList();
+            foreach (var item in SelectedItems)
             {
-                var delta = position - LastMousePosition;
-
-                LastMousePosition = position;
-
-                var cancellationTokenSource = new CancellationTokenSource();
-                var movingItems = SelectedItems.OfType<BaseShapeViewModel>().ToList();
-                foreach (var item in SelectedItems)
-                {
-                    this.Move(item, delta, movingItems, cancellationTokenSource);
-                }
-
-                if (cancellationTokenSource.IsCancellationRequested)
-                {
-                    return;
-                }
-
-                foreach (var connection in Connections)
-                {
-                    if (movingItems.Contains(connection.Point1.Item) && movingItems.Contains(connection.Point2.Item))
-                    {
-                        connection.Path.Translate(delta);
-                    }
-                    else if (movingItems.Any(i =>
-                                connection.Path.CollidesWith(i.PositionAndMargin, i.SizeAndMargin) || 
-                            (
-                                i is ConnectedComponentViewModel connectedComponent &&
-                            connection.IsConnectedTo(connectedComponent))))
-                        //If the item is moving or is connected to a moving item
-
-                    {
-                        connection.Redraw();
-                    }
-                }
+                this.Move(item, delta, movingItems, cancellationTokenSource);
             }
-            else if (ResizeDirection != ResizeDirection.None)
+
+            if (cancellationTokenSource.IsCancellationRequested)
             {
-                ResizeItem(position);
+                return;
+            }
+
+            foreach (var connection in Connections)
+            {
+                if (movingItems.Contains(connection.Point1.Item) && movingItems.Contains(connection.Point2.Item))
+                {
+                    connection.Path.Translate(delta);
+                }
+                else if (movingItems.Any(i =>
+                            connection.Path.CollidesWith(i.PositionAndMargin, i.SizeAndMargin) ||
+                        (
+                            i is ConnectedComponentViewModel connectedComponent &&
+                        connection.IsConnectedTo(connectedComponent))))
+                //If the item is moving or is connected to a moving item
+
+                {
+                    connection.Redraw();
+                }
             }
         }
 
@@ -430,106 +447,74 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             var selectedItem = SelectedItems.FirstOrDefault();
             if(selectedItem != null)
             {
-                var delta = position - LastMousePosition;
+                var delta = position - Interactor.LastMousePosition;
                 selectedItem.Resize(this, delta, ResizeDirection);
             }
-
-            LastMousePosition = position;
         }
 
-        private void ReleaseItem()
+        private void ItemReleased()
         {
             MovingItem = false;
             ResizeDirection = ResizeDirection.None;
 
-            if (ControlPressed)
+            if (Interactor.ControlPressed)
             {
                 return;
             }
 
-            foreach (var connection in Connections)
-            {
-                connection.Deselect();
-            }
-
+            Connections.ToList().ForEach(c => c.Deselect(this));
             ClearSelectedItems();
         }
 
-        private void ClickConnection(Vector2 position)
+        private void UpdateNewConnectionPath(Vector2 position)
         {
-            ConnectionPointViewModel? selectedConnectionPoint = GetComponents<ConnectionPointViewModel>().FirstOrDefault(c => c.CollidesWith(position));
+            if (_selectedConnectionPoint != null && !ConnectedComponents.Any(i => i.CollidesWith(position)))
+            {
+                Path.ClearPoints();
+                var startPoint = _selectedConnectionPoint.GetOffset(_selectedConnectionPoint.Item.Margin);
+                var path = this.GetPath(startPoint, position);
 
-            if (selectedConnectionPoint == null && IsPressed("c"))
-            {
-                var selectedItem = GetComponents<ConnectedComponentViewModel>().FirstOrDefault(c => c.CollidesWith(position));
-                SelectedConnectionPoint = this.CreateConnectionPoint(selectedItem, position);
-                return;
-            }
-
-            if (IsPressed("d"))
-            {
-                selectedConnectionPoint.RemoveFrom(this);
-            }
-            else
-            {
-                SelectedConnectionPoint = selectedConnectionPoint;
+                path.Add(_selectedConnectionPoint.GetOffset(_selectedConnectionPoint.ConnectionPointSize));
+                Path.AddPoints(path);
+                MousePoint.Position = position;
+                MousePoint.IsShown = true;
+                Path.IsShown = true;
             }
         }
 
-        private void MoveConnection(Vector2 position)
-        {
-            if (_selectedConnectionPoint == null)
-            {
-                return;
-            }
-
-            if (_selectedConnectionPoint.Item.CollidesWith(position))
-            {
-                return;
-            }
-
-            if (IsPressed("c"))
-            {
-                SelectedConnectionPoint.Update(position);
-                if (!Items.Any(i => i.CollidesWith(position)))
-                {
-                    Path.ClearPoints();
-                    var startPoint = _selectedConnectionPoint.GetOffset(_selectedConnectionPoint.Item.Margin);
-                    var path = this.GetPath(startPoint, position);
-              
-                    path.Add(_selectedConnectionPoint.GetOffset(_selectedConnectionPoint.ConnectionPointSize));
-                    Path.AddPoints(path);
-                    MousePoint.Position = position;
-                    MousePoint.IsShown = true;
-                    Path.IsShown = true;
-                }
-            }
-            else
-            {
-                MousePoint.IsShown = false;
-                Path.IsShown = false;
-                _selectedConnectionPoint.Update(position);
-            }
-        }
-
-        private void ReleaseConnection(Vector2 position)
+        private void ReleaseNewConnectionPath()
         {
             MousePoint.IsShown = false;
             Path.IsShown = false; 
             Path.ClearPoints();
+        }
+
+        private void MoveConnection(Vector2 position)
+        {
+            SelectedConnectionPoint?.Update(position);
+
+            if (Interactor.IsPressed("c"))
+            {
+                UpdateNewConnectionPath(position);
+            }
+        }
+
+        private void ConnectionReleased(Vector2 position)
+        {
+            ReleaseNewConnectionPath();
 
             if (_selectedConnectionPoint == null)
             {
                 return;
             }
 
-            if (IsPressed("c"))
+            if (Interactor.IsPressed("c"))
             {
                 ConnectionPointViewModel? selectedConnectionPoint = GetComponents<ConnectionPointViewModel>().FirstOrDefault(c => c.CollidesWith(position));
 
                 if (selectedConnectionPoint == null)
                 {
-                    var collidingItem = Items.FirstOrDefault(c => c.CollidesWith(position));
+                    var collidingItem = ConnectedComponents.FirstOrDefault(c => c.CollidesWith(position));
                     if (collidingItem != null && collidingItem != _selectedConnectionPoint.Item)
                     {
                         selectedConnectionPoint = this.CreateConnectionPoint(collidingItem, position);
@@ -542,19 +527,13 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     _selectedConnectionPoint.Connect(this, selectedConnectionPoint);
                 }
 
-                if(SelectedConnectionPoint != null && SelectedConnectionPoint.Connections.Count == 0)
+                if(SelectedConnectionPoint?.Connections.Count == 0)
                 {
                     SelectedConnectionPoint.RemoveFrom(this);
                 }
             }
 
-         
-
-            foreach (var connection in _selectedConnectionPoint.Connections)
-            {
-                connection.Deselect();
-            }
-
+            _selectedConnectionPoint.Deselect(this);
             _selectedConnectionPoint = null;
         }
 
@@ -564,10 +543,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public void RedrawConnections()
         {
-            foreach (var connection in Connections)
-            {
-                connection.Redraw();
-            }
+            Connections.ToList().ForEach(c => c.Redraw());
         }
 
         #endregion

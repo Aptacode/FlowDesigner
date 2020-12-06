@@ -20,29 +20,30 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         public override void AddTo(DesignerViewModel designer)
         {
             designer.Add(this);
-
-            foreach (var connectionPoint in ConnectionPoints.ToArray())
-            {
-                connectionPoint.AddTo(designer);
-            }
+            ConnectionPoints.ForEach(c => c.AddTo(designer));
         }
 
         public override void RemoveFrom(DesignerViewModel designer)
         {
             designer.Remove(this);
-
-            foreach (var connectionPoint in ConnectionPoints.ToArray())
-            {
-                connectionPoint.RemoveFrom(designer);
-            }
+            ConnectionPoints.ForEach(c => c.RemoveFrom(designer));
         }
         public override void Resize(DesignerViewModel designer, Vector2 delta, ResizeDirection direction)
         {
             base.Resize(designer, delta, direction);
-            foreach(var connection in ConnectionPoints)
-            {
-                connection.Redraw();
-            }
+            ConnectionPoints.ForEach(c => c.Redraw());
+        }
+
+        public override void Select(DesignerViewModel designer)
+        {
+            ConnectionPoints.ForEach(c => c.Select(designer));
+            base.Select(designer);
+        }
+
+        public override void Deselect(DesignerViewModel designer)
+        {
+            ConnectionPoints.ForEach(c => c.Deselect(designer));
+            base.Deselect(designer);
         }
     }
 }

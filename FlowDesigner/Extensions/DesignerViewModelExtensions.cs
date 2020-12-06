@@ -23,7 +23,7 @@ namespace Aptacode.FlowDesigner.Core.Extensions
             {
                 var mapBuilder = new MapBuilder();
 
-                foreach (var item in designer.Items.ToList())
+                foreach (var item in designer.ConnectedComponents.ToList())
                 {
                     mapBuilder.AddObstacle(item.Position - Vector2.One, item.Size + Vector2.One * 2);
                 }
@@ -61,7 +61,7 @@ namespace Aptacode.FlowDesigner.Core.Extensions
          List<BaseShapeViewModel> movingComponents,
          CancellationTokenSource cancellationToken)
         {
-            var unselectedItems = designer.Items.Except(movingComponents);
+            var unselectedItems = designer.ConnectedComponents.Except(movingComponents);
             var newPosition = component.Position + delta;
 
             if (newPosition.X < 0 || newPosition.Y < 0 || newPosition.X + component.Size.X >= designer.Width ||

@@ -55,11 +55,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         public void Redraw()
         {
             var pathBuilder = new StringBuilder();
-            foreach (var point in _points)
-            {
-                pathBuilder.Add(point);
-            }
-
+            _points.ForEach(point => pathBuilder.Add(point));
             Path = pathBuilder.ToString();
         }
 

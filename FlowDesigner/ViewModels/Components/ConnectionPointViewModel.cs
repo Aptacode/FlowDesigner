@@ -238,10 +238,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         internal void Redraw()
         {
-            foreach (var connection in Connections)
-            {
-                connection.Redraw();
-            }
+            Connections.ForEach(c => c.Redraw());
         }
 
         public override void Move(DesignerViewModel designer, Vector2 delta)
@@ -264,23 +261,14 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             designer.Add(this);
 
             Item.ConnectionPoints.Add(this);
-
-            foreach (var connection in Connections.ToArray())
-            {
-                connection.AddTo(designer);
-            }
+            Connections.ForEach(c => c.AddTo(designer));
         }
 
         public override void RemoveFrom(DesignerViewModel designer)
         {
-            designer.Remove(this);
-
             Item.ConnectionPoints.Remove(this);
-
-            foreach (var connection in Connections.ToArray())
-            {
-                connection.RemoveFrom(designer);
-            }
+            Connections.ForEach(c => c.RemoveFrom(designer));
+            designer.Remove(this);
         }
 
         public ConnectionViewModel Connect(DesignerViewModel designer, ConnectionPointViewModel point2)
@@ -291,5 +279,17 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             return newConnection;
         }
 
+        public override void Select(DesignerViewModel designer)
+        {
+            Connections.ForEach(c => c.Select(designer));
+            base.Select(designer);
+        }
+
+        public override void Deselect(DesignerViewModel designer)
+        {
+            Connections.ForEach(c => c.Deselect(designer));
+            base.Deselect(designer);
+
+        }
     }
 }

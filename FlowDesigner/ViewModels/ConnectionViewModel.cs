@@ -40,20 +40,21 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         public bool IsConnectedTo(ConnectedComponentViewModel item) => Point1.Item == item || Point2.Item == item;
 
-        public void Deselect()
+        public void Deselect(DesignerViewModel designer)
         {
             Point1.BorderColor = Color.Black;
             Point2.BorderColor = Color.Black;
             Path.BorderColor = Color.Black;
         }
 
-        public void Select()
+        public void Select(DesignerViewModel designer)
         {
             Point1.BorderColor = Color.Green;
             Point2.BorderColor = Color.Green;
             Path.BorderColor = Color.Green;
-        }        
-        
+            BringToFront(designer);
+        }
+
         public void BringToFront(DesignerViewModel designer)
         {
             designer.BringToFront(Point1);

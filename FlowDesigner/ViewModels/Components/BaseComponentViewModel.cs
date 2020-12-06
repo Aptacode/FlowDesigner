@@ -53,5 +53,17 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         public abstract void Move(DesignerViewModel designer, Vector2 delta);
         public abstract void Resize(DesignerViewModel designer, Vector2 delta, ResizeDirection direction);
         public abstract void Resize(DesignerViewModel designer, Vector2 delta);
+
+        public virtual void Deselect(DesignerViewModel designer)
+        {
+            BorderColor = Color.Black;
+            designer.BringToFront(this);
+        }
+
+        public virtual void Select(DesignerViewModel designer)
+        {
+            BorderColor = Color.Green;
+            designer.BringToFront(this);
+        }
     }
 }
