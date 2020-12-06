@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Numerics;
 using Aptacode.FlowDesigner.Core.Enums;
 using Aptacode.FlowDesigner.Core.Utilities;
@@ -253,7 +254,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         public override void RemoveFrom(DesignerViewModel designer)
         {
             Item.ConnectionPoints.Remove(this);
-            Connections.ForEach(c => c.RemoveFrom(designer));
+            Connections.ToList().ForEach(c => c.RemoveFrom(designer));
             designer.Remove(this);
         }
 
