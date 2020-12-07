@@ -9,13 +9,19 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 {
     public class ConnectedComponentViewModel : BaseShapeViewModel
     {
+        private string _label;
+
         public ConnectedComponentViewModel(Guid id, string label, Vector2 position, Vector2 size) : base(id, position,
             size)
         {
             Label = label;
         }
 
-        public string Label { get; set; }
+        public string Label
+        {
+            get => _label;
+            set => SetProperty(ref _label, value);
+        }
 
         public List<ConnectionPointViewModel> ConnectionPoints { get; set; } = new List<ConnectionPointViewModel>();
 
@@ -39,24 +45,28 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         public override void Select(DesignerViewModel designer)
         {
-            if (!_isSelected)
+            if (IsSelected)
             {
-                _isSelected = true;
-                BorderColor = Color.Green;
-                ConnectionPoints.ForEach(c => c.Select(designer));
-                base.Select(designer);
+                return;
             }
+
+            IsSelected = true;
+            BorderColor = Color.Green;
+            ConnectionPoints.ForEach(c => c.Select(designer));
+            base.Select(designer);
         }
 
         public override void Deselect(DesignerViewModel designer)
         {
-            if (_isSelected)
+            if (!IsSelected)
             {
-                _isSelected = false;
-                BorderColor = Color.Black;
-                ConnectionPoints.ForEach(c => c.Deselect(designer));
-                base.Deselect(designer);
+                return;
             }
+
+            IsSelected = false;
+            BorderColor = Color.Black;
+            ConnectionPoints.ForEach(c => c.Deselect(designer));
+            base.Deselect(designer);
         }
     }
 }

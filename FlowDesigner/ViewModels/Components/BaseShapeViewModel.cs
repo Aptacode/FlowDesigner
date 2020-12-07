@@ -158,12 +158,14 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
                     break;
             }
 
-            if (newSize.X >= 2 && newSize.Y >= 2 &&
-                designer.ConnectedComponents.Count(i => i.CollidesWith(PositionAndMargin, SizeAndMargin)) <= 1)
+            if (!(newSize.X >= 2) || !(newSize.Y >= 2) ||
+                designer.ConnectedComponents.Count(i => i.CollidesWith(PositionAndMargin, SizeAndMargin)) > 1)
             {
-                Position = newPosition;
-                Size = newSize;
+                return;
             }
+
+            Position = newPosition;
+            Size = newSize;
         }
 
         public override void Move(DesignerViewModel designer, Vector2 delta)

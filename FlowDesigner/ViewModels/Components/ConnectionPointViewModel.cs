@@ -268,25 +268,29 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         public override void Select(DesignerViewModel designer)
         {
-            if (!_isSelected)
+            if (IsSelected)
             {
-                _isSelected = true;
-
-                Connections.ForEach(c => c.Select(designer));
-                base.Select(designer);
+                return;
             }
+
+            IsSelected = true;
+
+            Connections.ForEach(c => c.Select(designer));
+            base.Select(designer);
 
         }
 
         public override void Deselect(DesignerViewModel designer)
         {
-            if (_isSelected)
+            if (!IsSelected)
             {
-                _isSelected = false;
-
-                Connections.ForEach(c => c.Deselect(designer));
-                base.Deselect(designer);
+                return;
             }
+
+            IsSelected = false;
+
+            Connections.ForEach(c => c.Deselect(designer));
+            base.Deselect(designer);
         }
     }
 }

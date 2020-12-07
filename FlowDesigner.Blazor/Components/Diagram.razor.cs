@@ -13,8 +13,6 @@ namespace Aptacode.FlowDesigner.Blazor.Components
     {
         [Parameter]
         public DesignerViewModel Designer { get; set; }
-        public string Cursor { get; set; }
-
         protected ElementReference diagram;  // set by the @ref attribute
 
         [Inject] IJSRuntime JSRuntime { get; set; }
@@ -36,48 +34,6 @@ namespace Aptacode.FlowDesigner.Blazor.Components
 
         private void Designer_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if(e.PropertyName == nameof(Designer.MovingItem) || e.PropertyName == nameof(Designer.ResizeDirection))
-            {
-                if (Designer.MovingItem)
-                {
-                    Cursor = "move";
-                }
-                else if (Designer.ResizeDirection != ResizeDirection.None)
-                {
-                    switch (Designer.ResizeDirection)
-                    {
-                        case ResizeDirection.N:
-                            Cursor = "n-resize";
-                            break;
-                        case ResizeDirection.NE:
-                            Cursor = "ne-resize";
-                            break;
-                        case ResizeDirection.NW:
-                            Cursor = "nw-resize";
-                            break;                        
-                        case ResizeDirection.SE:
-                            Cursor = "se-resize";
-                            break;                        
-                        case ResizeDirection.SW:
-                            Cursor = "sw-resize";
-                            break;                        
-                        case ResizeDirection.S:
-                            Cursor = "s-resize";
-                            break;
-                        case ResizeDirection.E:
-                            Cursor = "e-resize";
-                            break;
-                        case ResizeDirection.W:
-                            Cursor = "w-resize";
-                            break;
-                    }
-                }
-                else
-                {
-                    Cursor = "auto";
-                }
-            }
-
             StateHasChanged();
         }
 

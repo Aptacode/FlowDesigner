@@ -36,6 +36,10 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             Interactor.SelectAt += UserInteractionManager_SelectAt;
             Interactor.MouseMoved += UserInteractionManager_MouseMoved;
             Interactor.MouseReleased += UserInteractionManager_MouseReleased;
+
+            Interactor.MouseClicked += Interactor_MouseClicked;
+            Interactor.MouseDoubleClicked += Interactor_MouseDoubleClicked;
+            Interactor.KeyPressed += Interactor_KeyPressed;
         }
 
         public UserInteractionManager Interactor { get; set; } = new UserInteractionManager();
@@ -73,12 +77,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public IEnumerable<TType> GetComponents<TType>() where TType : BaseComponentViewModel
         {
-            if (ComponentsByType.TryGetValue(typeof(TType), out var components))
-            {
-                return components.Select(s => (TType) Convert.ChangeType(s, typeof(TType)));
-            }
-
-            return new List<TType>();
+            return ComponentsByType.TryGetValue(typeof(TType), out var components) ? components.Select(s => (TType) Convert.ChangeType(s, typeof(TType))) : new List<TType>();
         }
 
         public void Add<TType>(TType component) where TType : BaseComponentViewModel
@@ -149,6 +148,49 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         {
             get => _movingItem;
             set => SetProperty(ref _movingItem, value);
+        }
+
+        private string _cursor;
+
+        public string Cursor
+        {
+            get => _cursor;
+            set => SetProperty(ref _cursor, value);
+        }
+
+        public void UpdateResizeCursor(ResizeDirection direction)
+        {
+            switch (direction)
+            {
+                case ResizeDirection.N:
+                    Cursor = "n-resize";
+                    break;
+                case ResizeDirection.NE:
+                    Cursor = "ne-resize";
+                    break;
+                case ResizeDirection.NW:
+                    Cursor = "nw-resize";
+                    break;
+                case ResizeDirection.SE:
+                    Cursor = "se-resize";
+                    break;
+                case ResizeDirection.SW:
+                    Cursor = "sw-resize";
+                    break;
+                case ResizeDirection.S:
+                    Cursor = "s-resize";
+                    break;
+                case ResizeDirection.E:
+                    Cursor = "e-resize";
+                    break;
+                case ResizeDirection.W:
+                    Cursor = "w-resize";
+                    break;
+                case ResizeDirection.None:
+                default:
+                    Cursor = "auto";
+                    break;
+            }
         }
 
         #endregion
@@ -240,6 +282,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             {
                 CreateSelectionReleased();
             }
+
+            Cursor = "auto";
         }
 
         private void UserInteractionManager_MouseMoved(object sender, Vector2 e)
@@ -248,27 +292,56 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             {
                 if (MovingItem)
                 {
+                    Cursor = "move";
                     MoveComponent(e);
                 }
                 else if (ResizeDirection != ResizeDirection.None)
                 {
+                    UpdateResizeCursor(ResizeDirection);
                     ResizeItem(e);
                 }
             }
 
             if (_selectedConnectionPoint != null)
             {
+                Cursor = "grabbing";
                 MoveConnection(e);
             }
 
             if (Selection.IsShown)
             {
+                Cursor = "grabbing";
                 Selection.Adjust(Interactor.MouseDownPosition, e);
             }
 
             if (CreateSelection.IsShown)
             {
+                Cursor = "crosshair";
                 CreateSelection.Adjust(Interactor.MouseDownPosition, e);
+            }
+
+            if(SelectedItems.Count == 0 && _selectedConnectionPoint == null)
+            {
+                var selectedComponent = ConnectedComponents.FirstOrDefault(i => i.CollidesWith(e));
+                if (selectedComponent != null)
+                {
+                    var resizeDirection = selectedComponent?.GetCollidingEdge(e) ?? ResizeDirection.None;
+                    if(resizeDirection != ResizeDirection.None)
+                    {
+                        UpdateResizeCursor(resizeDirection);
+                    }
+                    else
+                    {
+                        if(selectedComponent.ConnectionPoints.Any(c => c.CollidesWith(e))){
+                            Cursor = "grab";
+                        }
+                        else
+                        {
+                            Cursor = "move";
+                        }
+                    }
+                }
+
             }
         }
 
@@ -338,6 +411,41 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             else
             {
                 selectedPoint.RemoveFrom(this);
+            }
+        }
+
+        private ConnectedComponentViewModel? EditingComponent { get; set; }
+        private void Interactor_MouseDoubleClicked(object sender, Vector2 e)
+        {
+            EditingComponent = ConnectedComponents.FirstOrDefault(i => i.CollidesWith(e));
+            //Get editable component
+            //Listen to key presses
+
+        }
+        private void Interactor_MouseClicked(object sender, Vector2 e)
+        {
+            EditingComponent = null;
+        }
+
+        private void Interactor_KeyPressed(object sender, string e)
+        {
+            if(EditingComponent != null)
+            {
+                if(e.Length == 1)
+                {
+                    EditingComponent.Label += e;
+                }else if(e == "Backspace")
+                {
+                    var newLength = EditingComponent.Label.Length - 1;
+                    if(newLength >= 0)
+                    {
+                        EditingComponent.Label = EditingComponent.Label.Substring(0, newLength);
+                    }
+                }
+                else if (e == "Enter")
+                {
+                    EditingComponent = null;
+                }
             }
         }
 
