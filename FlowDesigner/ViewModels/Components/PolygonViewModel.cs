@@ -1,18 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
-using Aptacode.FlowDesigner.Core.Enums;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 {
-    public class PointViewModel : ComponentViewModel
+    public abstract class PolygonViewModel : ComponentViewModel
     {
         private Vector2 _position;
 
-        public PointViewModel(Guid id, Vector2 position) : base(id)
+        protected PolygonViewModel(Guid id, Vector2 position) : base(id)
         {
-            _points.Add(position);
             Position = position;
         }
 
@@ -20,12 +19,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         public Vector2 Position
         {
-            get => _points[0];
-            set
-            {
-                _points[0] = value;
-                SetProperty(ref _position, value);
-            }
+            get => _position;
+            set => SetProperty(ref _position, value);
         }
 
         #endregion
@@ -33,16 +28,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         #region Designer
 
         #region Selection
-
-        public override void AddTo(DesignerViewModel designer)
-        {
-            designer.Add(this);
-        }
-
-        public override void RemoveFrom(DesignerViewModel designer)
-        {
-            designer.Remove(this);
-        }
 
         public virtual void Deselect(DesignerViewModel designer)
         {
@@ -70,23 +55,35 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             designer.BringToFront(this);
         }
 
-        public override void Resize(DesignerViewModel designer, Vector2 delta, ResizeDirection direction)
-        {
-            
-        }
+        #endregion
 
-        public override void Resize(DesignerViewModel designer, Vector2 delta)
-        {
-
-        }
+        #endregion
 
         public override bool CollidesWith(CollisionType type, params Vector2[] vertices)
         {
-            return CollisionsAllowed && Collider.Collides(vertices, _position);
+            if (!CollisionsAllowed)
+            {
+                return false;
+            }
+
+            if (type == CollisionType.Margin)
+            {
+                return PointsWithMargin.ToArray().Any(p => Collider.Collides(vertices, p));
+            }
+            else
+            {
+                return Collider.Collides(vertices, Points.ToArray());
+            }
         }
 
-        #endregion
+        public override void Move(DesignerViewModel designer, Vector2 delta)
+        {
+            for (var i = 0; i < _points.Count; i++)
+            {
+                _points[i] += delta;
+            }
 
-        #endregion
+            Position = _points[0];
+        }
     }
 }

@@ -59,11 +59,11 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public SelectionViewModel CreateSelection { get; set; }
         public PathViewModel NewConnectionPath { get; set; }
         public PointViewModel MousePoint { get; set; }
-        public Dictionary<Type, List<BaseComponentViewModel>> ComponentsByType { get; set; } = new Dictionary<Type, List<BaseComponentViewModel>>();
-        public readonly HashSet<ConnectedComponentViewModel> SelectedItems = new HashSet<ConnectedComponentViewModel>();
+        public Dictionary<Type, List<ComponentViewModel>> ComponentsByType { get; set; } = new Dictionary<Type, List<ComponentViewModel>>();
+        public readonly HashSet<ComponentViewModel> SelectedItems = new HashSet<ComponentViewModel>();
 
         private readonly List<ConnectionViewModel> _connections = new List<ConnectionViewModel>();
-        private readonly List<BaseComponentViewModel> _components = new List<BaseComponentViewModel>();
+        private readonly List<ComponentViewModel> _components = new List<ComponentViewModel>();
 
         public IEnumerable<ConnectedComponentViewModel> ConnectedComponents =>
             GetComponents<ConnectedComponentViewModel>();
@@ -73,18 +73,18 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public IEnumerable<RectangleViewModel> Rectangles => GetComponents<RectangleViewModel>();
         public IEnumerable<PathViewModel> Paths => GetComponents<PathViewModel>();
         public IEnumerable<ConnectionViewModel> Connections => _connections;
-        public IEnumerable<BaseComponentViewModel> Components => _components;
+        public IEnumerable<ComponentViewModel> Components => _components;
 
-        public IEnumerable<TType> GetComponents<TType>() where TType : BaseComponentViewModel
+        public IEnumerable<TType> GetComponents<TType>() where TType : ComponentViewModel
         {
             return ComponentsByType.TryGetValue(typeof(TType), out var components) ? components.Select(s => (TType) Convert.ChangeType(s, typeof(TType))) : new List<TType>();
         }
 
-        public void Add<TType>(TType component) where TType : BaseComponentViewModel
+        public void Add<TType>(TType component) where TType : ComponentViewModel
         {
             if (!ComponentsByType.TryGetValue(typeof(TType), out var components))
             {
-                components = new List<BaseComponentViewModel>();
+                components = new List<ComponentViewModel>();
             }
 
             if (components.Contains(component))
@@ -99,7 +99,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             OnPropertyChanged(nameof(Components));
         }
 
-        public void Remove<TType>(TType component) where TType : BaseComponentViewModel
+        public void Remove<TType>(TType component) where TType : ComponentViewModel
         {
             if (!ComponentsByType.TryGetValue(typeof(TType), out var components) || !components.Remove(component))
             {
@@ -197,7 +197,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         #region Layering
 
-        public void BringToFront(BaseComponentViewModel component)
+        public void BringToFront(ComponentViewModel component)
         {
             if (!_components.Remove(component))
             {
@@ -208,7 +208,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             OnPropertyChanged(nameof(Components));
         }
 
-        public void SendToBack(BaseComponentViewModel component)
+        public void SendToBack(ComponentViewModel component)
         {
             if (!_components.Remove(component))
             {
@@ -219,7 +219,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             OnPropertyChanged(nameof(Components));
         }
 
-        public void BringForward(BaseComponentViewModel component)
+        public void BringForward(ComponentViewModel component)
         {
             var index = _components.IndexOf(component);
             if (index == 0)
@@ -232,7 +232,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             OnPropertyChanged(nameof(Components));
         }
 
-        public void SendBackward(BaseComponentViewModel component)
+        public void SendBackward(ComponentViewModel component)
         {
             var index = _components.IndexOf(component);
             if (index == _components.Count - 1)
@@ -249,7 +249,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         #region Events
 
-        public event EventHandler<IEnumerable<ConnectedComponentViewModel>> SelectedItemChanged;
+        public event EventHandler<IEnumerable<ComponentViewModel>> SelectedItemChanged;
         public event EventHandler<ConnectionPointViewModel> SelectedConnectionChanged;
 
         #endregion
@@ -322,7 +322,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
             if(SelectedItems.Count == 0 && _selectedConnectionPoint == null)
             {
-                var selectedComponent = ConnectedComponents.FirstOrDefault(i => i.CollidesWith(e));
+                var selectedComponent = ConnectedComponents.FirstOrDefault(i => i.CollidesWith(CollisionType.Normal, e));
                 if (selectedComponent != null)
                 {
                     var resizeDirection = selectedComponent?.GetCollidingEdge(e) ?? ResizeDirection.None;
@@ -332,7 +332,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     }
                     else
                     {
-                        if(selectedComponent.ConnectionPoints.Any(c => c.CollidesWith(e))){
+                        if(selectedComponent.ConnectionPoints.Any(c => c.CollidesWith(CollisionType.Normal, e))){
                             Cursor = "grab";
                         }
                         else
@@ -347,8 +347,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         private void UserInteractionManager_SelectAt(object sender, Vector2 e)
         {
-            var selectedComponent = ConnectedComponents.FirstOrDefault(i => i.CollidesWith(e));
-            var selectedComponentPoint = ConnectionPoints.FirstOrDefault(i => i.CollidesWith(e));
+            var selectedComponent = ConnectedComponents.FirstOrDefault(i => i.CollidesWith(CollisionType.Normal, e));
+            var selectedComponentPoint = ConnectionPoints.FirstOrDefault(i => i.CollidesWith(CollisionType.Normal, e));
 
             if (selectedComponentPoint != null)
             {
@@ -366,9 +366,9 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         private void UserInteractionManager_DeleteAt(object sender, Vector2 e)
         {
-            var selectedComponent = ConnectedComponents.FirstOrDefault(i => i.CollidesWith(e));
-            var selectedComponentPoint = ConnectionPoints.FirstOrDefault(i => i.CollidesWith(e));
-            var selectedConnection = Connections.FirstOrDefault(c => c.Path.CollidesWith(e));
+            var selectedComponent = ConnectedComponents.FirstOrDefault(i => i.CollidesWith(CollisionType.Normal, e));
+            var selectedComponentPoint = ConnectionPoints.FirstOrDefault(i => i.CollidesWith(CollisionType.Normal, e));
+            var selectedConnection = Connections.FirstOrDefault(c => c.Path.CollidesWith(CollisionType.Normal, e));
 
             if (selectedComponentPoint == null)
             {
@@ -383,8 +383,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         private void UserInteractionManager_CreateAt(object sender, Vector2 e)
         {
-            var selectedComponent = ConnectedComponents.FirstOrDefault(i => i.CollidesWith(e));
-            var selectedComponentPoint = ConnectionPoints.FirstOrDefault(i => i.CollidesWith(e));
+            var selectedComponent = ConnectedComponents.FirstOrDefault(i => i.CollidesWith(CollisionType.Normal, e));
+            var selectedComponentPoint = ConnectionPoints.FirstOrDefault(i => i.CollidesWith(CollisionType.Normal, e));
 
             if (selectedComponentPoint != null)
             {
@@ -417,7 +417,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         private ConnectedComponentViewModel? EditingComponent { get; set; }
         private void Interactor_MouseDoubleClicked(object sender, Vector2 e)
         {
-            EditingComponent = ConnectedComponents.FirstOrDefault(i => i.CollidesWith(e));
+            EditingComponent = ConnectedComponents.FirstOrDefault(i => i.CollidesWith(CollisionType.Normal, e));
             //Get editable component
             //Listen to key presses
 
@@ -468,11 +468,13 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         public void DeselectComponent(ConnectedComponentViewModel component)
         {
-            if (SelectedItems.Remove(component))
+            if (!SelectedItems.Remove(component))
             {
-                component.Deselect(this);
-                SelectedItemChanged?.Invoke(this, SelectedItems);
+                return;
             }
+
+            component.Deselect(this);
+            SelectedItemChanged?.Invoke(this, SelectedItems);
         }
 
         private ConnectionPointViewModel? _selectedConnectionPoint;
@@ -497,7 +499,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         private void SelectionReleased()
         {
             Selection.IsShown = false;
-            var selectedItems = ConnectedComponents.Where(i => i.CollidesWith(Selection.Position, Selection.Size));
+            var selectedItems = ConnectedComponents.Where(i => i.CollidesWith(CollisionType.Normal, Selection.Points.ToArray()));
             selectedItems.ToList().ForEach(c => SelectComponent(c));
         }
 
@@ -505,7 +507,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         {
             CreateSelection.IsShown = false;
             var collidingItems =
-                ConnectedComponents.Where(i => i.CollidesWith(CreateSelection.Position, CreateSelection.Size));
+                ConnectedComponents.Where(i => i.CollidesWith(CollisionType.Normal, CreateSelection.Points.ToArray()));
             if (!collidingItems.Any())
             {
                 //Create a new item
@@ -556,7 +558,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         {
             var delta = position - Interactor.LastMousePosition;
             var cancellationTokenSource = new CancellationTokenSource();
-            var movingItems = SelectedItems.OfType<BaseShapeViewModel>().ToList();
+            var movingItems = SelectedItems.ToList();
             foreach (var item in SelectedItems)
             {
                 this.Move(item, delta, movingItems, cancellationTokenSource);
@@ -574,7 +576,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     connection.Path.Translate(delta);
                 }
                 else if (movingItems.Any(i =>
-                        connection.Path.CollidesWith(i.PositionAndMargin, i.SizeAndMargin) ||
+                        connection.Path.CollidesWith(CollisionType.Margin, i.Points.ToArray()) ||
                         i is ConnectedComponentViewModel connectedComponent &&
                         connection.IsConnectedTo(connectedComponent)))
                     //If the item is moving or is connected to a moving item
@@ -613,7 +615,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 
         private void UpdateNewConnectionPath(Vector2 position)
         {
-            if (_selectedConnectionPoint == null || ConnectedComponents.Any(i => i.CollidesWith(position)))
+            if (_selectedConnectionPoint == null || ConnectedComponents.Any(i => i.CollidesWith(CollisionType.Normal, position)))
             {
                 return;
             }
@@ -636,11 +638,11 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             NewConnectionPath.ClearPoints();
 
             var selectedConnectionPoint = GetComponents<ConnectionPointViewModel>()
-                .FirstOrDefault(c => c.CollidesWith(position));
+                .FirstOrDefault(c => c.CollidesWith(CollisionType.Normal, position));
 
             if (selectedConnectionPoint == null)
             {
-                var collidingItem = ConnectedComponents.FirstOrDefault(c => c.CollidesWith(position));
+                var collidingItem = ConnectedComponents.FirstOrDefault(c => c.CollidesWith(CollisionType.Normal, position));
                 if (collidingItem != null && collidingItem != _selectedConnectionPoint.Item)
                 {
                     selectedConnectionPoint = this.CreateConnectionPoint(collidingItem, position);

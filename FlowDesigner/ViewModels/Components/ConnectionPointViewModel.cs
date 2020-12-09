@@ -8,7 +8,7 @@ using Aptacode.FlowDesigner.Core.Utilities;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 {
-    public class ConnectionPointViewModel : BaseComponentViewModel
+    public class ConnectionPointViewModel : ComponentViewModel
     {
         private Vector2 _anchorPoint;
         private Vector2 _anchorPointDelta;
@@ -181,11 +181,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             return new Vector2(xIntersect, yIntersect);
         }
 
-        public bool CollidesWith(Vector2 position) =>
-            position.X >= AnchorPoint.X - ConnectionPointSize &&
-            position.X <= AnchorPoint.X + ConnectionPointSize &&
-            position.Y >= AnchorPoint.Y - ConnectionPointSize && position.Y <= AnchorPoint.Y + ConnectionPointSize;
-
         public Vector2 GetOffset(float offset)
         {
             if (_anchorPoint == Item.TopLeft)
@@ -236,12 +231,14 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             Connections.ForEach(c => c.Redraw());
         }
 
-        public override void Move(DesignerViewModel designer, Vector2 delta) { }
-
-
         public override void Resize(DesignerViewModel designer, Vector2 delta, ResizeDirection direction) { }
 
         public override void Resize(DesignerViewModel designer, Vector2 delta) { }
+
+        public override bool CollidesWith(CollisionType type, params Vector2[] vertices)
+        {
+            return false;
+        }
 
         public override void AddTo(DesignerViewModel designer)
         {

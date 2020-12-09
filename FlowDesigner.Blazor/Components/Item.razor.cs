@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Threading.Tasks;
 using Aptacode.FlowDesigner.Core;
 using Aptacode.FlowDesigner.Core.ViewModels;
@@ -38,8 +39,8 @@ namespace Aptacode.FlowDesigner.Blazor.Components
 
         public void Refresh()
         {
-            var scaledPosition = Item.Position * Constants.Scale;
-            var scaledSize = Item.Size * Constants.Scale;
+            var scaledPosition = Item.Points.First() * Constants.Scale;
+            var scaledSize = (Item.Points.ElementAt(2) - Item.Points.First()) * Constants.Scale;
 
             X = scaledPosition.X + 0.5f;
             Y = scaledPosition.Y + 0.5f;

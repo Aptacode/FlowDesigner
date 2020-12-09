@@ -7,7 +7,7 @@ using Aptacode.FlowDesigner.Core.Enums;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 {
-    public class ConnectedComponentViewModel : BaseShapeViewModel
+    public class ConnectedComponentViewModel : RectangleViewModel
     {
         private string _label;
 

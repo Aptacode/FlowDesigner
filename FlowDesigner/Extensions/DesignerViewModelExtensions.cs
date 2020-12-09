@@ -57,25 +57,24 @@ namespace Aptacode.FlowDesigner.Core.Extensions
 
         public static void Move(
             this DesignerViewModel designer,
-            BaseShapeViewModel component,
+            ComponentViewModel component,
             Vector2 delta,
-            List<BaseShapeViewModel> movingComponents,
+            List<ComponentViewModel> movingComponents,
             CancellationTokenSource cancellationToken)
         {
             var unselectedItems = designer.ConnectedComponents.Except(movingComponents);
-            var newPosition = component.Position + delta;
 
-            if (newPosition.X < 0 || newPosition.Y < 0 || newPosition.X + component.Size.X >= designer.Width ||
-                newPosition.Y + component.Size.Y >= designer.Height)
+            component.Move(designer, delta);
+
+            if (component.CollidesWith(CollisionType.Margin, new Vector2(0, 0), new Vector2(designer.Width, designer.Height)))
             {
+                component.Move(designer, -delta);
                 cancellationToken.Cancel();
                 return;
             }
 
-            component.Position = newPosition;
-
             var collidingItems = unselectedItems
-                .Where(i => i.CollidesWith(component.PositionAndMargin, component.SizeAndMargin)).ToList();
+                .Where(i => i.CollidesWith(CollisionType.Margin, component.Points.ToArray())).ToList();
             movingComponents.AddRange(collidingItems);
 
             foreach (var collidingItem in collidingItems)
@@ -85,7 +84,7 @@ namespace Aptacode.FlowDesigner.Core.Extensions
 
             if (cancellationToken.IsCancellationRequested)
             {
-                component.Position -= delta;
+                component.Move(designer, -delta);
             }
         }
 

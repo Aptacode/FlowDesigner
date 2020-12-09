@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 {
-    public class SelectionViewModel : BaseShapeViewModel
+    public class SelectionViewModel : RectangleViewModel
     {
         public SelectionViewModel(Guid id, Vector2 position, Vector2 size) : base(id, position, size)
         {
@@ -39,6 +39,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
                     ? new Vector2(startPosition.X, currentPosition.Y)
                     : startPosition;
             }
+
+            _points.Clear();
+            _points.Add(TopLeft);
+            _points.Add(TopRight);
+            _points.Add(BottomRight);
+            _points.Add(BottomLeft);
         }
 
         public void Show(Vector2 position)

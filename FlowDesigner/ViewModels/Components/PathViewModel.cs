@@ -8,10 +8,10 @@ using Aptacode.FlowDesigner.Core.Extensions;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 {
-    public class PathViewModel : BaseComponentViewModel, ICollider
+    public class PathViewModel : ComponentViewModel
     {
         private string _path;
-        private List<Vector2> _points = new List<Vector2>();
+
 
         public PathViewModel() : this(Guid.NewGuid(), new Vector2[0]) { }
 
@@ -28,6 +28,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         }
 
         public bool CollisionsAllowed { get; set; }
+
+        public override bool CollidesWith(CollisionType type, params Vector2[] vertices)
+        {
+            return CollisionsAllowed && Points.Any(point => Collider.Collides(vertices, point));
+        }
+
 
         public void AddPoint(Vector2 point)
         {
@@ -61,25 +67,6 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         }
 
         #region Collision
-
-        public virtual bool CollidesWith(Vector2 position) =>
-           CollisionsAllowed && _points.Any(p => Math.Abs(position.X - p.X) < Constants.Tolerance && Math.Abs(position.Y - p.Y) < Constants.Tolerance);
-
-        public virtual bool CollidesWithEdge(Vector2 position) => CollidesWith(position);
-
-        public virtual bool CollidesWith(params Vector2[] points) =>
-            CollisionsAllowed &&
-            points.Any(CollidesWith);
-
-        public virtual bool CollidesWith(Vector2 point, Vector2 shape)
-        {
-            return _points.Any(p =>
-                p.X >= point.X && point.X <= point.X + shape.X &&
-                p.Y >= point.Y && point.Y <= point.Y + shape.Y
-            );
-        }
-
-        public override void Move(DesignerViewModel designer, Vector2 delta) { }
 
         public override void Resize(DesignerViewModel designer, Vector2 delta, ResizeDirection direction) { }
 
