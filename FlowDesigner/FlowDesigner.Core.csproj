@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <LangVersion>9.0</LangVersion>
     <AssemblyName>Aptacode.FlowDesigner.Core</AssemblyName>
     <RootNamespace>Aptacode.FlowDesigner.Core</RootNamespace>
     <Authors>Timothy Jones, Thomas Schmidt</Authors>

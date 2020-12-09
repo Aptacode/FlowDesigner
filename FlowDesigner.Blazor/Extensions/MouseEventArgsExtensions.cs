@@ -2,7 +2,7 @@
 using Aptacode.FlowDesigner.Core;
 using Microsoft.AspNetCore.Components.Web;
 
-namespace Aptacode.FlowDesigner.Blazor.Components
+namespace Aptacode.FlowDesigner.Blazor.Extensions
 {
     public static class MouseEventArgsExtensions
     {
