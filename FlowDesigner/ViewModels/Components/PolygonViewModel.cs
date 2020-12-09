@@ -8,10 +8,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 {
     public abstract class PolygonViewModel : ComponentViewModel
     {
-        private Vector2 _position;
+        protected Vector2 _position;
 
         protected PolygonViewModel(Guid id, Vector2 position) : base(id)
         {
+            _points = new Vector2[1] { position };
+
             Position = position;
         }
 
@@ -19,8 +21,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         public Vector2 Position
         {
-            get => _position;
-            set => SetProperty(ref _position, value);
+            get => _points[0];
+            set
+            {
+                _points[0] = value;
+                SetProperty(ref _position, value);
+            }
         }
 
         #endregion
@@ -78,7 +84,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         public override void Move(DesignerViewModel designer, Vector2 delta)
         {
-            for (var i = 0; i < _points.Count; i++)
+            for (var i = 0; i < _points.Count(); i++)
             {
                 _points[i] += delta;
             }

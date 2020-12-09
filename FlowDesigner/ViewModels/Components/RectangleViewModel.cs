@@ -13,28 +13,49 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         public RectangleViewModel(Guid id, Vector2 position, Vector2 size) : base(id, position)
         {
+            _size = size;
+            _points = new Vector2[]
+            {
+                TopLeft,
+                 TopRight,
+                 BottomRight,
+                 BottomLeft
+            }; 
             Size = size;
-            _points.Add(TopLeft);
-            _points.Add(TopRight);
-            _points.Add(BottomRight);
-            _points.Add(BottomLeft);
+
+        }
+        #region Properties
+
+        public Vector2 Position
+        {
+            get => _points[0];
+            set
+            {
+                _points[0] = value;
+                SetProperty(ref _position, value);
+            }
         }
 
         public Vector2 Size
         {
-            get => _size;
-            set => SetProperty(ref _size, value);
+            get => _points.ElementAt(2) - _points.First();
+            set
+            {
+                //Todo
+                SetProperty(ref _size, value);
+            }
         }
 
-        public Vector2 MidPoint => Position + Size / 2;
+        public Vector2 MidPoint => Position + _size / 2;
 
         public Vector2 TopLeft => Position;
-        public Vector2 TopRight => Position + Size * new Vector2(1, 0);
-        public Vector2 BottomRight => Position + Size;
-        public Vector2 BottomLeft => Position + Size * new Vector2(0, 1);
+        public Vector2 TopRight => Position + _size * new Vector2(1, 0);
+        public Vector2 BottomRight => Position + _size;
+        public Vector2 BottomLeft => Position + _size * new Vector2(0, 1);
 
         public Vector2 PositionAndMargin => Position - new Vector2(Margin, Margin);
-        public Vector2 SizeAndMargin => Size + new Vector2(Margin, Margin);
+        public Vector2 SizeAndMargin => _size + new Vector2(Margin, Margin);
+        #endregion
 
         #region Collisions
 

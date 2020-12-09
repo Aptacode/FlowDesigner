@@ -40,11 +40,13 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
                     : startPosition;
             }
 
-            _points.Clear();
-            _points.Add(TopLeft);
-            _points.Add(TopRight);
-            _points.Add(BottomRight);
-            _points.Add(BottomLeft);
+            _points = new Vector2[]
+            {
+                TopLeft,
+                 TopRight,
+                 BottomRight,
+                 BottomLeft
+            };
         }
 
         public void Show(Vector2 position)

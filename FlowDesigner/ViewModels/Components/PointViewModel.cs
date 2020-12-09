@@ -12,7 +12,10 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         public PointViewModel(Guid id, Vector2 position) : base(id)
         {
-            _points.Add(position);
+            _points = new Vector2[1]
+            {
+                position
+            };
             Position = position;
         }
 

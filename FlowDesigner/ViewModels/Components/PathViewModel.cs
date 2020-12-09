@@ -37,32 +37,36 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         public void AddPoint(Vector2 point)
         {
-            _points.Add(point);
+            var newPoints = _points.ToList();
+            newPoints.Add(point);
+            _points = newPoints.ToArray();
             Redraw();
         }
 
         public void AddPoints(IEnumerable<Vector2> points)
         {
-            _points.AddRange(points);
+            var newPoints = _points.ToList();
+            newPoints.AddRange(points);
+            _points = newPoints.ToArray();
             Redraw();
         }
 
         public void ClearPoints()
         {
-            _points.Clear();
+            _points = new Vector2[0];
             Redraw();
         }
 
         public void Translate(Vector2 delta)
         {
-            _points = _points.ConvertAll(p => p + delta);
+            _points = _points.ToList().ConvertAll(p => p + delta).ToArray();
             Redraw();
         }
 
         public void Redraw()
         {
             var pathBuilder = new StringBuilder();
-            _points.ForEach(point => pathBuilder.Add(point));
+            _points.ToList().ForEach(point => pathBuilder.Add(point));
             Path = pathBuilder.ToString();
         }
 

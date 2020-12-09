@@ -16,9 +16,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         private bool _isShown = true;
         protected bool IsSelected = false;
         private float _margin;
-
-        protected List<Vector2> _points = new List<Vector2>();
-        public IEnumerable<Vector2> Points => _points;
+        protected Vector2[] _points = new Vector2[0];
 
         public IEnumerable<Vector2[]> PointsWithMargin => _points.Select(p => new Vector2[4]
         {
@@ -35,6 +33,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             _borderThickness = 0.3f;
             _margin = 2.0f;
             CollisionsAllowed = true;
+        }
+
+        public Vector2[] Points
+        {
+            get => _points;
+            set => SetProperty(ref _points, value);
         }
 
         #region Properties
@@ -113,7 +117,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         #region Transformations
         public virtual void Move(DesignerViewModel designer, Vector2 delta)
         {
-            for (var i = 0; i < _points.Count; i++)
+            for (var i = 0; i < _points.Count(); i++)
             {
                 _points[i] += delta;
             }
