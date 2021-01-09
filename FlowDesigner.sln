@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowDesigner.Core", "FlowDe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowDesigner.Blazor.Demo", "FlowDesigner.Blazor.Demo\FlowDesigner.Blazor.Demo.csproj", "{C83C9A4F-EAAF-4A2D-A0F4-C66B4EA25C57}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowDesigner.Blazor", "FlowDesigner.Blazor\FlowDesigner.Blazor.csproj", "{B61515EB-1C73-4870-AE2C-AA30BA3AB408}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,10 +21,6 @@ Global
 		{C83C9A4F-EAAF-4A2D-A0F4-C66B4EA25C57}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C83C9A4F-EAAF-4A2D-A0F4-C66B4EA25C57}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C83C9A4F-EAAF-4A2D-A0F4-C66B4EA25C57}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B61515EB-1C73-4870-AE2C-AA30BA3AB408}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B61515EB-1C73-4870-AE2C-AA30BA3AB408}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B61515EB-1C73-4870-AE2C-AA30BA3AB408}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B61515EB-1C73-4870-AE2C-AA30BA3AB408}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

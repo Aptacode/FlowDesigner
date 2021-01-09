@@ -38,8 +38,8 @@ namespace Aptacode.FlowDesigner.Blazor.Components
 
         public void Refresh()
         {
-            var scaledPosition = Selection.Position * Constants.Scale;
-            var scaledSize = Selection.Size * Constants.Scale;
+            var scaledPosition = Selection.Rectangle.Position * Constants.Scale;
+            var scaledSize = Selection.Rectangle.Size * Constants.Scale;
 
             X = scaledPosition.X + 0.5f;
             Y = scaledPosition.Y + 0.5f;

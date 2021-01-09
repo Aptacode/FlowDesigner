@@ -1,35 +1,46 @@
-﻿using Aptacode.FlowDesigner.Core.Utilities;
-using Aptacode.FlowDesigner.Core.ViewModels;
+﻿
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Components;
-using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
+using Aptacode.FlowDesigner.Core.ViewModels;
+using Aptacode.FlowDesigner.Core.ViewModels.Components;
+using Aptacode.Geometry.Blazor.Components.ViewModels;
+using Aptacode.Geometry.Blazor.Components.ViewModels.Components;
+using Aptacode.Geometry.Blazor.Utilities;
+using Aptacode.Geometry.Primitives.Polygons;
 
 namespace FlowDesigner.Blazor.Demo.Pages
 {
     public class IndexBase : ComponentBase
     {
+        #region Properties
 
-        public DesignerViewModel Designer { get; set; }
+        public FlowDesignerSceneController SceneController { get; set; }
 
-        protected async override Task OnInitializedAsync()
+        #endregion
+
+
+        protected override async Task OnInitializedAsync()
         {
-            Designer = new DesignerViewModel(200,100);
+            var componentBuilder = new ComponentBuilder();
+            var width = 200;
+            var height = 100;
 
-            var item1 = Designer.CreateConnectedComponent("State 1", new Vector2(10, 8), new Vector2(15, 5));
-            var item2 = Designer.CreateConnectedComponent("State 2", new Vector2(10, 20), new Vector2(15, 5));
-            var item3 = Designer.CreateConnectedComponent("State 3", new Vector2(40, 40), new Vector2(15, 5));
-            var item4 = Designer.CreateConnectedComponent("State 4", new Vector2(40, 60), new Vector2(15, 5));
-            var item5 = Designer.CreateConnectedComponent("State 5", new Vector2(40, 70), new Vector2(15, 5));
-            var item6 = Designer.CreateConnectedComponent("State 6", new Vector2(70, 70), new Vector2(15, 5));
+            var component1 = new ConnectedComponentViewModel(Rectangle.Create(20, 20, 10, 5));
+            var component2 = new ConnectedComponentViewModel(Rectangle.Create(40, 40, 10, 5));
 
-            var connectionPoint1 = Designer.CreateConnectionPoint(item1);
-            var connectionPoint2 = Designer.CreateConnectionPoint(item2);
-            var connectionPoint3 = Designer.CreateConnectionPoint(item3);
-            var connectionPoint4 = Designer.CreateConnectionPoint(item4);
+            var connectionPoint1 = component1.AddConnectionPoint();
+            var connectionPoint2 = component2.AddConnectionPoint();
+            
+            var scene = new SceneViewModel(new Vector2(width, height));
+            var connection = ConnectionViewModel.Connect(scene, connectionPoint1, connectionPoint2);
 
-            var connection = connectionPoint1.Connect(Designer, connectionPoint2);
-            var connection2 = connectionPoint1.Connect(Designer, connectionPoint3);
+            scene.Components.Add(component1);
+            scene.Components.Add(component2);
+            scene.Components.Add(connection);
+            
+            SceneController = new FlowDesignerSceneController(scene);
 
             await base.OnInitializedAsync();
         }

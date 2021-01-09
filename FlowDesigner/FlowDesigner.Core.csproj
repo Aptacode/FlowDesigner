@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>net5.0</TargetFrameworks>
     <LangVersion>9.0</LangVersion>
     <AssemblyName>Aptacode.FlowDesigner.Core</AssemblyName>
     <RootNamespace>Aptacode.FlowDesigner.Core</RootNamespace>
@@ -28,7 +28,9 @@
 
   <ItemGroup>
     <PackageReference Include="Aptacode.CSharp.Common.Utilities" Version="1.0.0.30" />
-    <PackageReference Include="Aptacode.PathFinder" Version="1.0.4-CI-20201209-121704" />
+    <PackageReference Include="Aptacode.Geometry" Version="1.0.7" />
+    <PackageReference Include="Aptacode.Geometry.Blazor" Version="1.0.7" />
+    <PackageReference Include="Aptacode.PathFinder" Version="1.0.6" />
   </ItemGroup>
 
 </Project>

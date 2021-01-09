@@ -7,7 +7,7 @@
      @onkeydown="KeyDown"
      @onkeyup="KeyUp"
      style="cursor:@(Designer.Cursor)">
-    <svg width="@(Designer.Width * Constants.Scale)" height="@(Designer.Height* Constants.Scale)"
+    <svg width="@(Designer.Rectangle.Size.X * Constants.Scale)" height="@(Designer.Rectangle.Size.Y* Constants.Scale)"
          @onmousemove="MouseMove"
          @onmousedown="MouseDown"
          @onmouseup="MouseUp"

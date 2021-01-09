@@ -18,7 +18,7 @@ namespace Aptacode.FlowDesigner.Blazor.Components
 
         [Inject] IJSRuntime JSRuntime { get; set; }
 
-        protected async override Task OnAfterRenderAsync(bool firstRender)
+        protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)
             {
@@ -57,12 +57,14 @@ namespace Aptacode.FlowDesigner.Blazor.Components
         public void MouseMove(MouseEventArgs e)
         {
             _position = e.ToPosition();
-            if(_lastPositionUpdate != _position)
+            if (_lastPositionUpdate == _position)
             {
-                _lastPositionUpdate = _position;
-                Designer.Interactor.MouseMove(_position);
+                return;
             }
-            
+
+            _lastPositionUpdate = _position;
+            Designer.Interactor.MouseMove(_position);
+
         }
 
         public void KeyDown(KeyboardEventArgs e)

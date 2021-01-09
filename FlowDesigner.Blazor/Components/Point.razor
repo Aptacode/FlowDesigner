@@ -3,6 +3,6 @@
 <g id="@(Point.Id.ToString())">
     @if (Point.IsShown)
     {
-        <circle cx="@(Point.Position.X * Constants.Scale)" cy="@(Point.Position.Y * Constants.Scale)" r="3" stroke="@(Point.BorderColor.ToKnownColor())" stroke-width="1" fill="gray" />
+        <circle cx="@(Point.Point.Position.X * Constants.Scale)" cy="@(Point.Point.Position.Y * Constants.Scale)" r="3" stroke="@(Point.BorderColor.ToKnownColor())" stroke-width="1" fill="gray" />
     }
 </g>
