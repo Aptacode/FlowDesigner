@@ -34,7 +34,7 @@ namespace Aptacode.FlowDesigner.Core.Extensions
                 {
                     var pathFinder =
                         new PathFinder.Algorithm.PathFinder(mapResult.Map,
-                            DefaultNeighbourFinder.Straight(0.5f));
+                            DefaultNeighbourFinder.Straight(1.0f));
 
                     points.AddRange(pathFinder.FindPath());
                 }
