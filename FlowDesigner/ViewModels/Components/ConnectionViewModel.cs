@@ -20,7 +20,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             ConnectionPoint1 = connectionPoint1;
             ConnectionPoint2 = connectionPoint2;
             CollisionDetectionEnabled = false;
-            Calculate();
+            RecalculatePath();
         }
         #endregion
 
@@ -42,7 +42,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             return connection;
         }
 
-        public void Calculate()
+        public void RecalculatePath()
         {
             var path = Scene.GetPath(ConnectionPoint1.GetConnectionPoint(), ConnectionPoint2.GetConnectionPoint());
 

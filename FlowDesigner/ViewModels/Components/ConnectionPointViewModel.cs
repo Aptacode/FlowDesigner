@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 using Aptacode.Geometry.Blazor.Components.ViewModels.Components.Primitives;
 using Aptacode.Geometry.Primitives;
@@ -27,9 +28,14 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         public override void Translate(Vector2 delta)
         {
             base.Translate(delta);
+            RecalculatePaths();
+        }
+
+        public void RecalculatePaths()
+        {
             foreach (var connectionViewModel in Connections)
             {
-                connectionViewModel.Calculate();
+                connectionViewModel.RecalculatePath();
             }
         }
         
@@ -58,6 +64,31 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             
             return Ellipse.Position + delta;
 
+        }
+
+        public void Move(Vector2 mousePos)
+        {
+            Vector2 newPos;
+            
+            if (mousePos.Y <= Component.Body.TopLeft.Y)
+            {
+                newPos = new Vector2(Math.Clamp(mousePos.X, Component.Body.TopLeft.X, Component.Body.TopRight.X), Component.Body.TopLeft.Y);
+            }
+            else if (mousePos.Y >= Component.Body.BottomRight.Y)
+            {
+                newPos = new Vector2(Math.Clamp(mousePos.X, Component.Body.TopLeft.X, Component.Body.TopRight.X), Component.Body.BottomLeft.Y);
+            }
+            else if (mousePos.X >= Component.Body.BottomRight.X)
+            {
+                newPos = new Vector2(Component.Body.BottomRight.X, Math.Clamp(mousePos.Y, Component.Body.TopLeft.Y, Component.Body.BottomLeft.Y));
+            }
+            else
+            {
+                newPos = new Vector2(Component.Body.BottomLeft.X, Math.Clamp(mousePos.Y, Component.Body.TopLeft.Y, Component.Body.BottomLeft.Y));
+            }
+
+            Ellipse = new Ellipse(newPos, Ellipse.Radii, Ellipse.Rotation);
+            RecalculatePaths();
         }
     }
 }
