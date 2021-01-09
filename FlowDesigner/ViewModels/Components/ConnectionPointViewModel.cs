@@ -12,16 +12,10 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         public ConnectionPointViewModel(ConnectedComponentViewModel component, Ellipse ellipse) : base(ellipse)
         {
-            this.Component = component;
+            Component = component;
             Margin = 1;
             Connections = new List<ConnectionViewModel>();
         }
-        #endregion
-
-        #region Prop
-        
-        public ConnectedComponentViewModel Component { get; set; }
-        public List<ConnectionViewModel> Connections { get; set; }
 
         #endregion
 
@@ -38,11 +32,11 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
                 connectionViewModel.RecalculatePath();
             }
         }
-        
+
         public Vector2 GetConnectionPoint()
         {
             const int buffer = 2;
-            
+
             Vector2 delta;
 
             if (Ellipse.Position.Y <= Component.Body.TopLeft.Y)
@@ -61,15 +55,14 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             {
                 delta = new Vector2(-Ellipse.Radii.X - buffer, 0);
             }
-            
-            return Ellipse.Position + delta;
 
+            return Ellipse.Position + delta;
         }
 
         public void Move(Vector2 mousePos)
         {
             Vector2 newPos;
-            
+
             if (mousePos.Y <= Component.Body.TopLeft.Y)
             {
                 newPos = new Vector2(Math.Clamp(mousePos.X, Component.Body.TopLeft.X, Component.Body.TopRight.X), Component.Body.TopLeft.Y);
@@ -90,5 +83,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             Ellipse = new Ellipse(newPos, Ellipse.Radii, Ellipse.Rotation);
             RecalculatePaths();
         }
+
+        #region Prop
+
+        public ConnectedComponentViewModel Component { get; set; }
+        public List<ConnectionViewModel> Connections { get; set; }
+
+        #endregion
     }
 }

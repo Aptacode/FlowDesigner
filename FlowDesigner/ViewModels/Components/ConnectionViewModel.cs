@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using Aptacode.FlowDesigner.Core.Extensions;
+﻿using Aptacode.FlowDesigner.Core.Extensions;
 using Aptacode.Geometry.Blazor.Components.ViewModels;
 using Aptacode.Geometry.Blazor.Components.ViewModels.Components.Primitives;
 using Aptacode.Geometry.Primitives;
@@ -10,7 +9,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
     public class ConnectionViewModel : PolylineViewModel
     {
         #region Ctor
-        protected ConnectionViewModel(SceneViewModel scene, ConnectionPointViewModel connectionPoint1, ConnectionPointViewModel connectionPoint2) : base(new PolyLine(VertexArray.Create(new Vector2[]
+
+        protected ConnectionViewModel(SceneViewModel scene, ConnectionPointViewModel connectionPoint1, ConnectionPointViewModel connectionPoint2) : base(new PolyLine(VertexArray.Create(new[]
         {
             connectionPoint1.Ellipse.BoundingCircle.Center,
             connectionPoint2.Ellipse.BoundingCircle.Center
@@ -22,18 +22,9 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             CollisionDetectionEnabled = false;
             RecalculatePath();
         }
+
         #endregion
 
-        #region Prop
-
-        public SceneViewModel Scene { get; set; }
-        public ConnectionPointViewModel ConnectionPoint1 { get; set; }
-        public ConnectionPointViewModel ConnectionPoint2 { get; set; }
-
-        public PolyLine Connection => base.PolyLine;
-        
-        #endregion
-        
         public static ConnectionViewModel Connect(SceneViewModel scene, ConnectionPointViewModel connectionPoint1, ConnectionPointViewModel connectionPoint2)
         {
             var connection = new ConnectionViewModel(scene, connectionPoint1, connectionPoint2);
@@ -53,5 +44,15 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             UpdateBoundingRectangle();
             Invalidated = true;
         }
+
+        #region Prop
+
+        public SceneViewModel Scene { get; set; }
+        public ConnectionPointViewModel ConnectionPoint1 { get; set; }
+        public ConnectionPointViewModel ConnectionPoint2 { get; set; }
+
+        public PolyLine Connection => PolyLine;
+
+        #endregion
     }
 }

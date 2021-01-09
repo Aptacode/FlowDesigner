@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Aptacode.BlazorCanvas;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.JSInterop;
 
 namespace FlowDesigner.Blazor.Demo
 {
