@@ -13,7 +13,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         public ConnectedComponentViewModel(Rectangle body) : base(body)
         {
             Body = body;
-            Margin = 2;
+            Margin = 1;
             ConnectionPoints = new List<ConnectionPointViewModel>();
         }
         #endregion
@@ -27,7 +27,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         public ConnectionPointViewModel AddConnectionPoint()
         {
-            var ellipse = new Ellipse(Body.TopLeft + new Vector2(2,0), new Vector2(2, 2), 0);
+            var ellipse = new Ellipse(Body.TopLeft + new Vector2(4,0), new Vector2(1, 1), 0);
             var connectionPoint = new ConnectionPointViewModel(this, ellipse);
             ConnectionPoints.Add(connectionPoint);
             Add(connectionPoint);

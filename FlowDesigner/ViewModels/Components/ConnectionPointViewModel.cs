@@ -12,6 +12,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
         public ConnectionPointViewModel(ConnectedComponentViewModel component, Ellipse ellipse) : base(ellipse)
         {
             this.Component = component;
+            Margin = 1;
             Connections = new List<ConnectionViewModel>();
         }
         #endregion

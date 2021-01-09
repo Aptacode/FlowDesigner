@@ -20,6 +20,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             ConnectionPoint1 = connectionPoint1;
             ConnectionPoint2 = connectionPoint2;
             CollisionDetectionEnabled = false;
+            Calculate();
         }
         #endregion
 
