@@ -58,13 +58,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             }
 
             await CustomDraw(ctx);
-
-            if (!string.IsNullOrEmpty(Text))
-            {
-                ctx.TextAlign("center");
-                ctx.FillStyle("black");
-                ctx.FillText(Text, BoundingRectangle.Center.X * SceneScale.Value, BoundingRectangle.Center.Y * SceneScale.Value);
-            }
+            await DrawText(ctx);
         }
 
         #region Prop

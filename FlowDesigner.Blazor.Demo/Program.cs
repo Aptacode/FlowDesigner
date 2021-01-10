@@ -19,7 +19,6 @@ namespace FlowDesigner.Blazor.Demo
 
             builder.Services.AddSingleton<BlazorCanvasInterop>();
 
-
             await builder.Build().RunAsync();
         }
     }
