@@ -1,6 +1,6 @@
-﻿using Aptacode.FlowDesigner.Core.Extensions;
-using Aptacode.Geometry.Blazor.Components.ViewModels;
-using Aptacode.Geometry.Blazor.Components.ViewModels.Components.Primitives;
+﻿using Aptacode.AppFramework.Components.Primitives;
+using Aptacode.AppFramework.Scene;
+using Aptacode.FlowDesigner.Core.Extensions;
 using Aptacode.Geometry.Primitives;
 using Aptacode.Geometry.Vertices;
 
@@ -10,7 +10,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
     {
         #region Ctor
 
-        protected ConnectionViewModel(SceneViewModel scene, ConnectionPointViewModel connectionPoint1, ConnectionPointViewModel connectionPoint2) : base(new PolyLine(VertexArray.Create(new[]
+        protected ConnectionViewModel(Scene scene, ConnectionPointViewModel connectionPoint1, ConnectionPointViewModel connectionPoint2) : base(new PolyLine(VertexArray.Create(new[]
         {
             connectionPoint1.Ellipse.BoundingCircle.Center,
             connectionPoint2.Ellipse.BoundingCircle.Center
@@ -25,7 +25,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         #endregion
 
-        public static ConnectionViewModel Connect(SceneViewModel scene, ConnectionPointViewModel connectionPoint1, ConnectionPointViewModel connectionPoint2)
+        public static ConnectionViewModel Connect(Scene scene, ConnectionPointViewModel connectionPoint1, ConnectionPointViewModel connectionPoint2)
         {
             var connection = new ConnectionViewModel(scene, connectionPoint1, connectionPoint2);
             connectionPoint1.Connections.Add(connection);
@@ -47,7 +47,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         #region Prop
 
-        public SceneViewModel Scene { get; set; }
+        public Scene Scene { get; set; }
         public ConnectionPointViewModel ConnectionPoint1 { get; set; }
         public ConnectionPointViewModel ConnectionPoint2 { get; set; }
 

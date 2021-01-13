@@ -2,9 +2,9 @@
 using System.Drawing;
 using System.Numerics;
 using System.Threading.Tasks;
+using Aptacode.AppFramework.Components.Primitives;
+using Aptacode.AppFramework.Scene.Events;
 using Aptacode.BlazorCanvas;
-using Aptacode.Geometry.Blazor.Components.ViewModels.Components.Primitives;
-using Aptacode.Geometry.Blazor.Utilities;
 using Aptacode.Geometry.Primitives;
 using Rectangle = Aptacode.Geometry.Primitives.Polygons.Rectangle;
 

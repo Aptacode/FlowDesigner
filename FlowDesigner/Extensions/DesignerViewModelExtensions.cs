@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using Aptacode.Geometry.Blazor.Components.ViewModels;
+using Aptacode.AppFramework.Scene;
 using Aptacode.PathFinder.Geometry.Neighbours;
 using Aptacode.PathFinder.Maps;
 
@@ -12,7 +12,7 @@ namespace Aptacode.FlowDesigner.Core.Extensions
     {
         #region PathFinding
 
-        public static List<Vector2> GetPath(this SceneViewModel scene, Vector2 startPoint, Vector2 endPoint)
+        public static List<Vector2> GetPath(this Scene scene, Vector2 startPoint, Vector2 endPoint)
         {
             var points = new List<Vector2>();
 
