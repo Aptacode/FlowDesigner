@@ -10,17 +10,34 @@ using Aptacode.AppFramework.Scene;
 using Aptacode.AppFramework.Scene.Events;
 using Aptacode.FlowDesigner.Core.ViewModels.Components;
 using Aptacode.Geometry.Primitives.Extensions;
+using Aptacode.PathFinder.Maps.Hpa;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels
 {
     public class FlowDesignerSceneController : SceneController
     {
-        public FlowDesignerSceneController(Scene scene) : base(scene)
+        public FlowDesignerSceneController(Vector2 size)
         {
             UserInteractionController.OnMouseEvent += UserInteractionControllerOnOnMouseEvent;
             UserInteractionController.OnKeyboardEvent += UserInteractionControllerOnOnKeyboardEvent;
 
-            foreach (var component in scene.Components)      
+            var component1 = new ConnectedComponentViewModel(Geometry.Primitives.Polygons.Rectangle.Create(20, 20, 10, 5));
+            var component2 = new ConnectedComponentViewModel(Geometry.Primitives.Polygons.Rectangle.Create(40, 40, 10, 5));
+
+            var connectionPoint1 = component1.AddConnectionPoint();
+            var connectionPoint2 = component2.AddConnectionPoint();
+
+            FlowDesignerScene = new Scene(size);
+
+            Map = new HierachicalMap(FlowDesignerScene, 1);
+            
+            var connection = ConnectionViewModel.Connect(Map, connectionPoint1, connectionPoint2);
+            FlowDesignerScene.Add(component1);
+            FlowDesignerScene.Add(component2);
+            FlowDesignerScene.Add(connection);
+            
+
+            foreach (var component in FlowDesignerScene.Components)      
             {
                 if (component is ConnectedComponentViewModel c)
                 {
@@ -28,8 +45,13 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                     component.OnMouseUp += (object? sender, MouseUpEvent e) => { DraggingComponent = null;};
                 }
             }
+            
+            Add(FlowDesignerScene);
+
         }
 
+        public Scene FlowDesignerScene { get; set; }
+        
         private void UserInteractionControllerOnOnMouseEvent(object? sender, MouseEvent e)
         {
             if (DraggingComponent != null)
@@ -38,19 +60,21 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 {
                     var delta = moveEvent.Position - UserInteractionController.LastMousePosition;
 
-                    Translate(DraggingComponent, delta, new List<ComponentViewModel> { DraggingComponent },
+                    FlowDesignerScene.Translate(DraggingComponent, delta, new List<ComponentViewModel> { DraggingComponent },
                         new CancellationTokenSource());
+
+                   // Map.Update(DraggingComponent);
                 }
             }
 
-            foreach (var componentViewModel in Scene.Components)
+            foreach (var componentViewModel in FlowDesignerScene.Components)
             {
                 componentViewModel.HandleMouseEvent(e);
             }
 
             if (e is MouseClickEvent)
             {
-                EditingComponent = Scene.Components.First(c => c.CollisionDetectionEnabled && c.CollidesWith(e.Position) && c is ConnectedComponentViewModel);
+                EditingComponent = FlowDesignerScene.Components.First(c => c.CollisionDetectionEnabled && c.CollidesWith(e.Position) && c is ConnectedComponentViewModel);
                 _isEditingText = EditingComponent != null;
             }
         }
@@ -81,6 +105,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
         public ComponentViewModel DraggingComponent { get; set; }
         public ConnectedComponentViewModel SelectedConnectedComponent { get; set; }
         public ConnectionPointViewModel SelectedConnectionPoint { get; set; }
+        public readonly HierachicalMap Map;
 
         #endregion
 
@@ -95,7 +120,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             
             DraggingComponent = null;
 
-            foreach (var componentViewModel in Scene.Components.CollidingWith(e))
+            foreach (var componentViewModel in FlowDesignerScene.Components.CollidingWith(e))
             {
                 DraggingComponent = componentViewModel;
                 componentViewModel.BorderColor = Color.Green;
@@ -115,7 +140,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 }
             }
 
-            Scene.BringToFront(DraggingComponent);
+            FlowDesignerScene.BringToFront(DraggingComponent);
         }
         #endregion
     }

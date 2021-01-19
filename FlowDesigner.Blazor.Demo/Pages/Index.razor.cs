@@ -30,14 +30,12 @@ namespace FlowDesigner.Blazor.Demo.Pages
             var connectionPoint1 = component1.AddConnectionPoint();
             var connectionPoint2 = component2.AddConnectionPoint();
 
-            var scene = new Scene(new Vector2(width, height));
-            var connection = ConnectionViewModel.Connect(scene, connectionPoint1, connectionPoint2);
+            SceneController = new FlowDesignerSceneController(new Vector2(width, height));
 
-            scene.Add(component1);
-            scene.Add(component2);
-            scene.Add(connection);
-
-            SceneController = new FlowDesignerSceneController(scene);
+            var connection = ConnectionViewModel.Connect(SceneController.Map, connectionPoint1, connectionPoint2);
+            SceneController.FlowDesignerScene.Add(component1);
+            SceneController.FlowDesignerScene.Add(component2);
+            SceneController.FlowDesignerScene.Add(connection);
 
             await base.OnInitializedAsync();
         }
