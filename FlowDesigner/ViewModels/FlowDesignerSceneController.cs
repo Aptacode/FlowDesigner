@@ -16,28 +16,40 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
 {
     public class FlowDesignerSceneController : SceneController
     {
-        public FlowDesignerSceneController(Vector2 size)
+        public FlowDesignerSceneController(Vector2 size) : base(size)
         {
             UserInteractionController.OnMouseEvent += UserInteractionControllerOnOnMouseEvent;
             UserInteractionController.OnKeyboardEvent += UserInteractionControllerOnOnKeyboardEvent;
-
+            ComponentScene = new Scene(size);
+            ConnectionScene = new Scene(size);
+            
             var component1 = new ConnectedComponentViewModel(Geometry.Primitives.Polygons.Rectangle.Create(20, 20, 10, 5));
             var component2 = new ConnectedComponentViewModel(Geometry.Primitives.Polygons.Rectangle.Create(40, 40, 10, 5));
-
+            var component3 = new ConnectedComponentViewModel(Geometry.Primitives.Polygons.Rectangle.Create(80, 80, 10, 5));
+            var component4 = new ConnectedComponentViewModel(Geometry.Primitives.Polygons.Rectangle.Create(70, 40, 10, 5));
+            ComponentScene.Add(component1);
+            ComponentScene.Add(component2);
+            ComponentScene.Add(component3);
+            ComponentScene.Add(component4);
+            
             var connectionPoint1 = component1.AddConnectionPoint();
             var connectionPoint2 = component2.AddConnectionPoint();
+            var connectionPoint3 = component3.AddConnectionPoint();
+            var connectionPoint4 = component4.AddConnectionPoint();
 
-            FlowDesignerScene = new Scene(size);
-
-            Map = new HierachicalMap(FlowDesignerScene, 1);
+            Map = new HierachicalMap(ComponentScene, 1);
             
-            var connection = ConnectionViewModel.Connect(Map, connectionPoint1, connectionPoint2);
-            FlowDesignerScene.Add(component1);
-            FlowDesignerScene.Add(component2);
-            FlowDesignerScene.Add(connection);
-            
+   
+            var connection1 = ConnectionViewModel.Connect(Map, connectionPoint1, connectionPoint2);
+            var connection2 = ConnectionViewModel.Connect(Map, connectionPoint1, connectionPoint3);
+            var connection3 = ConnectionViewModel.Connect(Map, connectionPoint2, connectionPoint3);
+            var connection4 = ConnectionViewModel.Connect(Map, connectionPoint3, connectionPoint4);
+            ConnectionScene.Add(connection1);
+            ConnectionScene.Add(connection2);
+            ConnectionScene.Add(connection3);
+            ConnectionScene.Add(connection4);
 
-            foreach (var component in FlowDesignerScene.Components)      
+            foreach (var component in ComponentScene.Components)      
             {
                 if (component is ConnectedComponentViewModel c)
                 {
@@ -46,11 +58,12 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 }
             }
             
-            Add(FlowDesignerScene);
-
+            Add(ComponentScene);
+            Add(ConnectionScene);
         }
 
-        public Scene FlowDesignerScene { get; set; }
+        public Scene ComponentScene { get; set; }
+        public Scene ConnectionScene { get; set; }
         
         private void UserInteractionControllerOnOnMouseEvent(object? sender, MouseEvent e)
         {
@@ -60,21 +73,29 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 {
                     var delta = moveEvent.Position - UserInteractionController.LastMousePosition;
 
-                    FlowDesignerScene.Translate(DraggingComponent, delta, new List<ComponentViewModel> { DraggingComponent },
+                    ComponentScene.Translate(DraggingComponent, delta, new List<ComponentViewModel> { DraggingComponent },
                         new CancellationTokenSource());
-
-                   // Map.Update(DraggingComponent);
+                    
+                    Map.Update(DraggingComponent);
+                    
+                    foreach (var component in ConnectionScene.Components)
+                    {
+                        if (component is ConnectionViewModel conneciton && conneciton.CollidesWith(DraggingComponent))
+                        {
+                            conneciton.RecalculatePath();
+                        }
+                    }
                 }
             }
 
-            foreach (var componentViewModel in FlowDesignerScene.Components)
+            foreach (var componentViewModel in ComponentScene.Components)
             {
                 componentViewModel.HandleMouseEvent(e);
             }
 
             if (e is MouseClickEvent)
             {
-                EditingComponent = FlowDesignerScene.Components.First(c => c.CollisionDetectionEnabled && c.CollidesWith(e.Position) && c is ConnectedComponentViewModel);
+                EditingComponent = ComponentScene.Components.First(c => c.CollisionDetectionEnabled && c.CollidesWith(e.Position) && c is ConnectedComponentViewModel);
                 _isEditingText = EditingComponent != null;
             }
         }
@@ -120,7 +141,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             
             DraggingComponent = null;
 
-            foreach (var componentViewModel in FlowDesignerScene.Components.CollidingWith(e))
+            foreach (var componentViewModel in ComponentScene.Components.CollidingWith(e))
             {
                 DraggingComponent = componentViewModel;
                 componentViewModel.BorderColor = Color.Green;
@@ -140,7 +161,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
                 }
             }
 
-            FlowDesignerScene.BringToFront(DraggingComponent);
+            ComponentScene.BringToFront(DraggingComponent);
         }
         #endregion
     }

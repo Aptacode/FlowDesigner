@@ -1,8 +1,5 @@
 ﻿using System.Linq;
-using System.Net;
 using Aptacode.AppFramework.Components.Primitives;
-using Aptacode.AppFramework.Scene;
-using Aptacode.FlowDesigner.Core.Extensions;
 using Aptacode.Geometry.Primitives;
 using Aptacode.Geometry.Vertices;
 using Aptacode.PathFinder.Maps.Hpa;
@@ -22,7 +19,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
             Map = map;
             ConnectionPoint1 = connectionPoint1;
             ConnectionPoint2 = connectionPoint2;
-            CollisionDetectionEnabled = false;
+            CollisionDetectionEnabled = true;
             RecalculatePath();
         }
 
@@ -38,7 +35,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         public void RecalculatePath()
         {
-            var points = Map.FindPath(ConnectionPoint1.Ellipse.Position, ConnectionPoint2.Ellipse.Position, 1);
+            var points = Map.FindPath(ConnectionPoint1.GetConnectionPoint(), ConnectionPoint2.GetConnectionPoint(), 1);
 
             var path = points.ToList();
 
