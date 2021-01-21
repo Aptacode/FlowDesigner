@@ -3,10 +3,9 @@ using System.Drawing;
 using System.Numerics;
 using System.Threading.Tasks;
 using Aptacode.AppFramework.Components.Primitives;
-using Aptacode.AppFramework.Scene.Events;
 using Aptacode.BlazorCanvas;
+using Aptacode.Geometry.Collision.Rectangles;
 using Aptacode.Geometry.Primitives;
-using Rectangle = Aptacode.Geometry.Primitives.Polygons.Rectangle;
 
 namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 {
@@ -14,9 +13,8 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
     {
         #region Ctor
 
-        public ConnectedComponentViewModel(Rectangle body) : base(body)
+        public ConnectedComponentViewModel(Polygon body) : base(body)
         {
-            Body = body;
             FillColor = Color.White;
             Margin = 1;
             ConnectionPoints = new List<ConnectionPointViewModel>();
@@ -63,7 +61,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         #region Prop
 
-        public Rectangle Body { get; }
+        public BoundingRectangle Body => Polygon.BoundingRectangle;
         public List<ConnectionPointViewModel> ConnectionPoints { get; }
 
         #endregion

@@ -35,7 +35,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels.Components
 
         public void RecalculatePath()
         {
-            var points = Map.FindPath(ConnectionPoint1.GetConnectionPoint(), ConnectionPoint2.GetConnectionPoint(), 1);
+            var points = Map.FindPath(ConnectionPoint1.GetConnectionPoint(), ConnectionPoint2.GetConnectionPoint());
 
             var path = points.ToList();
 

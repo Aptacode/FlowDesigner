@@ -9,6 +9,7 @@ using Aptacode.AppFramework.Extensions;
 using Aptacode.AppFramework.Scene;
 using Aptacode.AppFramework.Scene.Events;
 using Aptacode.FlowDesigner.Core.ViewModels.Components;
+using Aptacode.Geometry.Primitives;
 using Aptacode.Geometry.Primitives.Extensions;
 using Aptacode.PathFinder.Maps.Hpa;
 
@@ -23,10 +24,10 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             ComponentScene = new Scene(size);
             ConnectionScene = new Scene(size);
             
-            var component1 = new ConnectedComponentViewModel(Geometry.Primitives.Polygons.Rectangle.Create(20, 20, 10, 5));
-            var component2 = new ConnectedComponentViewModel(Geometry.Primitives.Polygons.Rectangle.Create(40, 40, 10, 5));
-            var component3 = new ConnectedComponentViewModel(Geometry.Primitives.Polygons.Rectangle.Create(80, 80, 10, 5));
-            var component4 = new ConnectedComponentViewModel(Geometry.Primitives.Polygons.Rectangle.Create(70, 40, 10, 5));
+            var component1 = new ConnectedComponentViewModel(Polygon.Rectangle.FromPositionAndSize(new Vector2(20, 20), new Vector2(10, 5)));
+            var component2 = new ConnectedComponentViewModel(Polygon.Rectangle.FromPositionAndSize(new Vector2(40, 40), new Vector2(10, 5)));
+            var component3 = new ConnectedComponentViewModel(Polygon.Rectangle.FromPositionAndSize(new Vector2(80, 80), new Vector2(10, 5)));
+            var component4 = new ConnectedComponentViewModel(Polygon.Rectangle.FromPositionAndSize(new Vector2(70, 40), new Vector2(10, 5)));
             ComponentScene.Add(component1);
             ComponentScene.Add(component2);
             ComponentScene.Add(component3);
@@ -37,7 +38,7 @@ namespace Aptacode.FlowDesigner.Core.ViewModels
             var connectionPoint3 = component3.AddConnectionPoint();
             var connectionPoint4 = component4.AddConnectionPoint();
 
-            Map = new HierachicalMap(ComponentScene, 1);
+            Map = new HierachicalMap(ComponentScene);
             
    
             var connection1 = ConnectionViewModel.Connect(Map, connectionPoint1, connectionPoint2);

@@ -3,8 +3,6 @@ using System.Threading.Tasks;
 using Aptacode.AppFramework.Scene;
 using Aptacode.AppFramework.Utilities;
 using Aptacode.FlowDesigner.Core.ViewModels;
-using Aptacode.FlowDesigner.Core.ViewModels.Components;
-using Aptacode.Geometry.Primitives.Polygons;
 using Microsoft.AspNetCore.Components;
 
 namespace FlowDesigner.Blazor.Demo.Pages
